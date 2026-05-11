@@ -39,15 +39,15 @@ Phase 2
 <!--
   Implement the foundational modules that all commands depend on.
 -->
-- [ ] Implement `src/config.ts` — config directory resolution, read/write `config.json`, athlete ID resolution. See [config.ts](../SPEC.md#configts) and [Athlete ID Resolution](../SPEC.md#7-athlete-id-resolution).
-- [ ] Implement `src/auth.ts` — read env vars, resolve auth headers (Bearer > Basic). See [auth.ts](../SPEC.md#authts) and [Authentication Flow](../SPEC.md#6-authentication-flow).
-- [ ] Implement `src/client.ts` — create typed `openapi-fetch` client with base URL and auth headers. See [client.ts](../SPEC.md#clientts).
-- [ ] Implement `src/output.ts` — TTY detection, format resolution, JSON/table/plain renderers. See [output.ts](../SPEC.md#outputts) and [Output Formatting](../SPEC.md#8-output-formatting).
-- [ ] Implement `src/input.ts` — file path / stdin reader, JSON parsing. See [input.ts](../SPEC.md#inputts) and [File Input Handling](../SPEC.md#9-file-input-handling).
+- [x] Implement `src/config.ts` — config directory resolution, read/write `config.json`, athlete ID resolution. See [config.ts](../SPEC.md#configts) and [Athlete ID Resolution](../SPEC.md#7-athlete-id-resolution).
+- [x] Implement `src/auth.ts` — read env vars, resolve auth headers (Bearer > Basic). See [auth.ts](../SPEC.md#authts) and [Authentication Flow](../SPEC.md#6-authentication-flow).
+- [x] Implement `src/client.ts` — create typed `openapi-fetch` client with base URL and auth headers. See [client.ts](../SPEC.md#clientts).
+- [x] Implement `src/output.ts` — TTY detection, format resolution, JSON/table/plain renderers. See [output.ts](../SPEC.md#outputts) and [Output Formatting](../SPEC.md#8-output-formatting).
+- [x] Implement `src/input.ts` — file path / stdin reader, JSON parsing. See [input.ts](../SPEC.md#inputts) and [File Input Handling](../SPEC.md#9-file-input-handling).
 - [ ] Implement `src/cli.ts` — Commander program setup, global options, error handling. See [cli.ts](../SPEC.md#clits).
 - [ ] Implement `src/index.ts` — entry point
 - [ ] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`. See [Automated Tests](../SPEC.md#automated-tests).
-- **Status:** pending
+- **Status:** in_progress
 
 ### Phase 3: Top-Level Commands
 <!--

@@ -64,6 +64,21 @@ User confirmed package.json was correct as-is after reviewing SPEC.md §3. Compl
 
 ---
 
+### 5. Phase 2 Tasks 1–5: config.ts, auth.ts, client.ts, output.ts, input.ts
+
+Implemented four core modules: `src/config.ts` (env-paths XDG config dir, async read/write with ENOENT → `{}`, descriptive error on corrupted JSON, mkdir recursive for dir auto-creation, athlete ID resolution), `src/auth.ts` (Bearer first → Basic, `Buffer.from(...).toString('base64')`, exact error message per user spec), `src/client.ts` (openapi-fetch typed client, `getAuthHeaders()` called once at module load), `src/output.ts` (`OutputFormat` type, `ColumnDef` interface, `resolveFormat` TTY-aware, `formatJson`, `formatTable` via cli-table3, `formatPlain` TSV), `src/input.ts` (file path or stdin via `for await...of`, `setEncoding('utf8')`, empty stdin → `null`). Biome auto-fixed formatting on all files. Lint passes (7 files checked).
+
+**Files explored:**
+- `SPEC.md`
+- `src/config.ts`
+- `src/auth.ts`
+- `src/client.ts`
+- `src/output.ts`
+- `src/input.ts`
+- `node_modules/env-paths/index.js` (to verify config path resolution per platform)
+
+---
+
 ## Last action
-Updated context files: marked Phase 1 tasks complete, set Phase 1 status to complete, set Current Phase to Phase 2. Verified package.json, tsconfig.json, biome.json, api/openapi-spec.json, and src/generated/api.d.ts all exist.
-2026-05-11_13:24
+Implemented Phase 2 core modules: src/config.ts, src/auth.ts, src/client.ts, src/output.ts, src/input.ts. All lint cleanly. Context files updated.
+2026-05-11_22:58
