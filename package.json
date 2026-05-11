@@ -1,0 +1,49 @@
+{
+  "name": "icu-cli",
+  "version": "0.1.0",
+  "description": "A cross-platform TypeScript CLI to interact with the Intervals.icu API",
+  "type": "module",
+  "bin": {
+    "icu": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsup",
+    "generate": "openapi-typescript api/openapi-spec.json -o src/generated/api.d.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "compile:win": "bun build ./dist/index.js --compile --target=bun-windows-x64 --outfile icu-win-x64.exe",
+    "compile:linux": "bun build ./dist/index.js --compile --target=bun-linux-x64 --outfile icu-linux-x64",
+    "compile:macos": "bun build ./dist/index.js --compile --target=bun-darwin-arm64 --outfile icu-macos-arm64"
+  },
+  "keywords": [
+    "intervals.icu",
+    "cli",
+    "training",
+    "cycling",
+    "running"
+  ],
+  "author": "Mathieu Buisson",
+  "license": "MIT",
+  "dependencies": {
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "env-paths": "^4.0.0",
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/node": "^22.0.0",
+    "openapi-typescript": "^7.13.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.0.0"
+  }
+}

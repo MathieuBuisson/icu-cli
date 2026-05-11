@@ -1,0 +1,137 @@
+# Project Plan: icu-cli
+<!--
+  WHAT: This is your roadmap for the project. Think of it as your "working memory on disk."
+  WHY: After 50+ tool calls, your original goals can get forgotten. This file keeps them fresh.
+  WHEN: Create this FIRST, before starting any work. Update after each phase completes.
+-->
+
+## Goal
+<!--
+  WHAT: One clear sentence describing the purpose of this project.
+  WHY: This is your north star. Re-reading this keeps you focused on the end state.
+-->
+Build a cross-platform TypeScript CLI (`icu`) that wraps the Intervals.icu REST API, supporting 11 command groups, dual authentication, multiple output formats, and standalone binary distribution.
+
+## Current Phase
+<!--
+  WHAT: Which phase you're currently working on.
+  WHY: Quick reference for where you are in the project. Update this as you progress.
+-->
+Phase 2
+
+## Phases
+
+### Phase 1: Project Scaffolding & Tooling
+<!--
+  Set up the repository, install dependencies, and configure the dev toolchain.
+-->
+- [x] Initialise `package.json` with metadata, scripts, and engine constraints. See [Dependencies](../SPEC.md#3-dependencies-packagejson).
+- [x] Create `tsconfig.json` with strict mode and ES module output
+- [x] Create `biome.json` configuration
+- [x] Install production dependencies (`commander`, `openapi-fetch`, `cli-table3`, `env-paths`)
+- [x] Install dev dependencies (`typescript`, `tsup`, `tsx`, `vitest`, `@biomejs/biome`, `openapi-typescript`)
+- [x] Download and pin the Intervals.icu OpenAPI spec to `api/openapi-spec.json`. See [API Client Generation](../SPEC.md#12-api-client-generation).
+- [x] Run `openapi-typescript` to generate `src/generated/api.d.ts`
+- [ ] Verify the project builds (`tsup`) and lints (`biome check`) cleanly
+- **Status:** complete
+
+### Phase 2: Core Modules
+<!--
+  Implement the foundational modules that all commands depend on.
+-->
+- [ ] Implement `src/config.ts` — config directory resolution, read/write `config.json`, athlete ID resolution. See [config.ts](../SPEC.md#configts) and [Athlete ID Resolution](../SPEC.md#7-athlete-id-resolution).
+- [ ] Implement `src/auth.ts` — read env vars, resolve auth headers (Bearer > Basic). See [auth.ts](../SPEC.md#authts) and [Authentication Flow](../SPEC.md#6-authentication-flow).
+- [ ] Implement `src/client.ts` — create typed `openapi-fetch` client with base URL and auth headers. See [client.ts](../SPEC.md#clientts).
+- [ ] Implement `src/output.ts` — TTY detection, format resolution, JSON/table/plain renderers. See [output.ts](../SPEC.md#outputts) and [Output Formatting](../SPEC.md#8-output-formatting).
+- [ ] Implement `src/input.ts` — file path / stdin reader, JSON parsing. See [input.ts](../SPEC.md#inputts) and [File Input Handling](../SPEC.md#9-file-input-handling).
+- [ ] Implement `src/cli.ts` — Commander program setup, global options, error handling. See [cli.ts](../SPEC.md#clits).
+- [ ] Implement `src/index.ts` — entry point
+- [ ] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`. See [Automated Tests](../SPEC.md#automated-tests).
+- **Status:** pending
+
+### Phase 3: Top-Level Commands
+<!--
+  Implement the top-level commands (whoami, config, auth status).
+-->
+- [ ] Implement `src/commands/whoami.ts`. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [ ] Implement `src/commands/config-cmd.ts` (`config set`, `config get`, `config list`). See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [ ] Implement `icu auth status` command. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [ ] Write integration tests for top-level commands
+- **Status:** pending
+
+### Phase 4: Command Groups — Data Access
+<!--
+  Implement the read-heavy command groups first (athletes, activities, events, wellness).
+-->
+- [ ] Implement `src/commands/athletes.ts` (`get`, `update`, `profile`, `training-plan`, `summary`). See [icu athletes](../SPEC.md#icu-athletes).
+- [ ] Implement `src/commands/activities.ts` (`list`, `get`, `create`, `upload`, `update`, `delete`, `search`, `streams`, `intervals`, `download-fit`, `download-gpx`). See [icu activities](../SPEC.md#icu-activities).
+- [ ] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events).
+- [ ] Implement `src/commands/wellness.ts` (`list`, `get`, `update`, `upload`). See [icu wellness](../SPEC.md#icu-wellness).
+- [ ] Write integration tests for each command group (mocked HTTP responses)
+- **Status:** pending
+
+### Phase 5: Command Groups — Planning & Social
+<!--
+  Implement the remaining command groups (workouts, sport settings, chats, weather, shared events, fitness, performance).
+-->
+- [ ] Implement `src/commands/workouts.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu workouts](../SPEC.md#icu-workouts).
+- [ ] Implement `src/commands/sport-settings.ts` (`list`, `get`, `create`, `update`, `delete`). See [icu sport-settings](../SPEC.md#icu-sport-settings).
+- [ ] Implement `src/commands/chats.ts` (`list`, `get`, `messages`, `send`). See [icu chats](../SPEC.md#icu-chats).
+- [ ] Implement `src/commands/weather.ts` (`forecast`, `config-get`, `config-update`). See [icu weather](../SPEC.md#icu-weather).
+- [ ] Implement `src/commands/shared-events.ts` (`get`). See [icu shared-events](../SPEC.md#icu-shared-events).
+- [ ] Implement `src/commands/fitness.ts` (`list`). See [icu fitness](../SPEC.md#icu-fitness).
+- [ ] Implement `src/commands/performance.ts` (`power`, `pace`, `hr`). See [icu performance](../SPEC.md#icu-performance).
+- [ ] Write integration tests for each command group (mocked HTTP responses)
+- **Status:** pending
+
+### Phase 6: Error Handling & Polish
+<!--
+  Harden error handling, refine user-facing messages, and ensure consistent behaviour.
+-->
+- [ ] Implement structured error handling across all commands. See [Error Handling](../SPEC.md#10-error-handling).
+- [ ] Ensure all errors go to `stderr`, data to `stdout`
+- [ ] Validate exit codes (`0` success, `1` error). See [Exit Codes](../SPEC.md#11-exit-codes).
+- [ ] Add `--help` text and descriptions for all commands and options
+- [ ] End-to-end manual testing against the live Intervals.icu API. See [Manual Tests](../SPEC.md#manual-tests).
+- **Status:** pending
+
+### Phase 7: Packaging & CI/CD
+<!--
+  Set up build pipeline, single executable compilation, and automated release.
+-->
+- [ ] Configure `tsup` for single-file ESM bundle. See [Packaging](../SPEC.md#13-packaging).
+- [ ] Verify `bun build --compile` produces working binaries for all 3 targets
+- [ ] Create GitHub Actions CI workflow (PR: lint → test → build). See [CI/CD Pipeline](../SPEC.md#cicd-pipeline-github-actions).
+- [ ] Create GitHub Actions release workflow (tag push: compile → release → npm publish). See [CI/CD Pipeline](../SPEC.md#cicd-pipeline-github-actions).
+- [ ] Verify npm package installs and runs correctly (`npm install -g icu-cli`)
+- [ ] Verify standalone binaries on Windows, Linux, and macOS
+- **Status:** pending
+
+## Decisions Made
+<!--
+  WHAT: Technical and design decisions you've made, with the reasoning behind them.
+  WHY: You'll forget why you made choices. This table helps you remember and justify decisions.
+  WHEN: Update whenever you make a significant choice (technology, approach, structure).
+-->
+| Decision | Rationale |
+|----------|-----------|
+| `commander` over oclif/yargs | Most popular, well-documented, clean subcommand support without framework overhead |
+| `openapi-typescript` + `openapi-fetch` | Type-safe API calls generated directly from the official spec; eliminates manual type definitions |
+| Pin the OpenAPI spec locally | Reproducible builds; explicit control over when API changes are adopted |
+| `tsup` (esbuild) for bundling | Fast single-file bundling, handles TS → JS without Webpack complexity |
+| `bun build --compile` for executables | Cross-compiles to standalone binaries for 3 targets; Bun only needed at build time |
+| `biome` for lint + format | Single Rust-based tool replacing ESLint + Prettier; near-instant execution |
+| `env-paths` for config directory | Cross-platform XDG-compliant paths without manual platform detection |
+| Bearer token precedence over API key | OAuth is the more secure credential; if a user has both configured, prefer the stronger one |
+
+## Notes
+<!--
+  REMINDERS:
+  - Update phase status as you progress: pending → in_progress → complete
+  - Re-read this plan before major decisions
+  - Never repeat a failed action - change your approach instead
+-->
+- Update phase status as you progress: pending → in_progress → complete
+- Re-read this plan before major decisions (attention manipulation)
+- The Intervals.icu API spec is available at `https://intervals.icu/api/v1/docs`
+- Node.js 24 LTS is the minimum supported runtime
