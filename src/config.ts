@@ -7,10 +7,21 @@ export interface Config {
   defaultFormat?: 'json' | 'table' | 'plain';
 }
 
-const paths = envPaths('icu-cli');
+let cachedPaths: ReturnType<typeof envPaths> | null = null;
+
+export function _resetConfigCache(): void {
+  cachedPaths = null;
+}
+
+function getPaths(): ReturnType<typeof envPaths> {
+  if (!cachedPaths) {
+    cachedPaths = envPaths('icu-cli');
+  }
+  return cachedPaths;
+}
 
 export function getConfigDir(): string {
-  return paths.config;
+  return getPaths().config;
 }
 
 export function getConfigPath(): string {

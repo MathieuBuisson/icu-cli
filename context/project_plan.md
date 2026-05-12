@@ -35,7 +35,7 @@ Phase 2
 - [ ] Verify the project builds (`tsup`) and lints (`biome check`) cleanly
 - **Status:** complete
 
-### Phase 2: Core Modules
+### Phase 2: Core Modules — **COMPLETE**
 <!--
   Implement the foundational modules that all commands depend on.
 -->
@@ -46,8 +46,8 @@ Phase 2
 - [x] Implement `src/input.ts` — file path / stdin reader, JSON parsing. See [input.ts](../SPEC.md#inputts) and [File Input Handling](../SPEC.md#9-file-input-handling).
 - [x] Implement `src/cli.ts` — Commander program setup, global options, error handling. See [cli.ts](../SPEC.md#clits).
 - [x] Implement `src/index.ts` — entry point
-- [ ] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`. See [Automated Tests](../SPEC.md#automated-tests).
-- **Status:** in_progress
+- [x] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`, `cli.ts`, `client.ts`. See [Automated Tests](../SPEC.md#automated-tests). 52 tests total. All SPEC §14 scenarios covered except stdin and integration tests.
+- **Status:** complete
 
 ### Phase 3: Top-Level Commands
 <!--
