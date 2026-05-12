@@ -94,15 +94,7 @@ Created `src/cli.ts` (Commander program setup: name 'icu', version '0.1.0', desc
 
 ---
 
-## Last action
-Phase 2 complete — 52 unit tests written and passing across 6 test files (config: 14, auth: 5, output: 19, input: 5, cli: 7, client: 2). Lint clean, build succeeds. Context files updated. SPEC coverage verified: all §14 scenarios covered except stdin read and integration tests.
-2026-05-12_15:54
-
----
-
-## Session: Unit Tests (2026-05-12_15:30–16:00)
-
-### Phase 2 Task 8: Unit Tests
+### 7. Phase 2 Task 8: Unit Tests
 
 Wrote unit tests for all core modules. Key challenges and resolutions:
 
@@ -134,4 +126,38 @@ Wrote unit tests for all core modules. Key challenges and resolutions:
 **Files modified:**
 - `src/config.ts` — added `_resetConfigCache()` export for testability; changed top-level `const paths = envPaths(...)` to lazy `cachedPaths` pattern
 
-2026-05-12_15:54
+---
+
+### 8. Phase 3: Top-Level Commands
+
+Implemented three top-level commands. Key decisions:
+
+**whoami.ts**: Replaced stub. Calls `GET /api/v1/athlete/0/profile` — the `0` ID resolves to the currently authenticated athlete. `--save` flag persists the returned `athleteId` to config. 7 table columns: id, name, email, city, country, timezone, sex. Catch-all error now prints raw message without misleading "Network error:" prefix (fixed after user review).
+
+**config-cmd.ts**: Replaced stub. Three subcommands: `config set <key> <value>` (validates key and format value, merges into existing config), `config get <key>` (prints value or nothing), `config list` (table/JSON of all set keys). Uses `readConfig()` / `writeConfig()` from config.ts — `readConfig()` returns `{}` on ENOENT, so no special handling needed for missing config file. Uses `resolveFormat()` for output.
+
+**auth-cmd.ts**: Replaced stub. Uses `getAuthMode()` (new function in auth.ts) to detect and disclose auth mode without throwing. Calls `GET /api/v1/athlete/0/profile` to verify credentials work. Output: table (auth_mode first column) / plain (`Auth Mode: bearer` first line, then one field per line) / JSON (`{ auth_mode, env_var, athlete }`). Prints `ICU_ACCESS_TOKEN is set` / `ICU_API_KEY is set` to stdout before athlete data. Exits 1 with error to stderr on no credentials, auth failure, or network error.
+
+**getAuthMode()**: Added to auth.ts — new non-throwing function returning `'bearer' | 'api_key' | 'none'`. Used by auth-cmd.ts instead of `getAuthHeaders()` when we need to know the mode without triggering the credential-not-found error. 4 unit tests added to auth.test.ts.
+
+**Decisions made:**
+- Catch-all in whoami.ts: removed misleading "Network error:" prefix — now prints raw error message
+- config list: uses table if TTY, JSON otherwise (consistent with other commands)
+- auth status plain output: `Auth Mode: bearer/api_key` first line, then field:value pairs
+- auth status table: `auth_mode` as the first column
+
+**Files written:**
+- `tests/unit/auth.test.ts` — added 4 `getAuthMode` test cases (9 total in auth.test.ts)
+
+**Files modified:**
+- `src/commands/whoami.ts` — full rewrite
+- `src/commands/config-cmd.ts` — full rewrite
+- `src/commands/auth-cmd.ts` — full rewrite
+- `src/auth.ts` — added `getAuthMode()` function
+- `context/project_plan.md` — Phase 2 marked complete, Phase 3 tasks 1–3 marked complete, Phase 3 current, Decisions table updated
+
+---
+
+## Last action
+Phase 3 top-level commands implemented (whoami, config, auth status). Added `getAuthMode()` to auth.ts with 4 unit tests. Phase status set to in_progress (integration tests pending).
+2026-05-12_19:06

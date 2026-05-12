@@ -7,7 +7,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-import { getAuthHeaders } from '../../src/auth.js';
+import { getAuthHeaders, getAuthMode } from '../../src/auth.js';
 
 describe('auth', () => {
   describe('getAuthHeaders', () => {
@@ -47,6 +47,32 @@ describe('auth', () => {
       const headers = getAuthHeaders();
       const expectedEncoded = Buffer.from('API_KEY:test-key').toString('base64');
       expect(headers.Authorization).toBe(`Basic ${expectedEncoded}`);
+    });
+  });
+
+  describe('getAuthMode', () => {
+    it('returns "bearer" when ICU_ACCESS_TOKEN is set', () => {
+      process.env.ICU_ACCESS_TOKEN = 'my-token';
+      process.env.ICU_API_KEY = '';
+      expect(getAuthMode()).toBe('bearer');
+    });
+
+    it('returns "api_key" when only ICU_API_KEY is set', () => {
+      process.env.ICU_ACCESS_TOKEN = '';
+      process.env.ICU_API_KEY = 'my-key';
+      expect(getAuthMode()).toBe('api_key');
+    });
+
+    it('returns "bearer" when both are set', () => {
+      process.env.ICU_ACCESS_TOKEN = 'token';
+      process.env.ICU_API_KEY = 'key';
+      expect(getAuthMode()).toBe('bearer');
+    });
+
+    it('returns "none" when no credentials are set', () => {
+      process.env.ICU_ACCESS_TOKEN = '';
+      process.env.ICU_API_KEY = '';
+      expect(getAuthMode()).toBe('none');
     });
   });
 });

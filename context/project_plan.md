@@ -17,7 +17,7 @@ Build a cross-platform TypeScript CLI (`icu`) that wraps the Intervals.icu REST 
   WHAT: Which phase you're currently working on.
   WHY: Quick reference for where you are in the project. Update this as you progress.
 -->
-Phase 2
+Phase 3
 
 ## Phases
 
@@ -53,11 +53,11 @@ Phase 2
 <!--
   Implement the top-level commands (whoami, config, auth status).
 -->
-- [ ] Implement `src/commands/whoami.ts`. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
-- [ ] Implement `src/commands/config-cmd.ts` (`config set`, `config get`, `config list`). See [Top-Level Commands](../SPEC.md#42-top-level-commands).
-- [ ] Implement `icu auth status` command. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
-- [ ] Write integration tests for top-level commands : whoami, config, auth status.
-- **Status:** pending
+- [x] Implement `src/commands/whoami.ts` — GET /api/v1/athlete/0/profile, --save flag, table/plain/json output with 7 columns. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [x] Implement `src/commands/config-cmd.ts` (`config set`, `config get`, `config list`) — validates keys and format values, merges into existing config. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [x] Implement `icu auth status` command — calls /api/v1/athlete/0/profile, shows auth mode + athlete info, discloses which env var is set. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
+- [ ] Write integration tests for top-level commands: whoami, config, auth status.
+- **Status:** in_progress (tasks 1–3 complete; integration tests pending)
 
 ### Phase 4: Command Groups — Data Access
 <!--
@@ -126,6 +126,9 @@ Phase 2
 | `tsup.config.ts` ESM entry | tsup needs an explicit config file to know entry point and format; defaults to CJS |
 | `Command as Cmd` import alias | `addCommand(new Command(...))` requires `Command` as a value (constructor), not just a type; alias avoids shadowing the `Command` type parameter |
 | 14 commands (not 13) | SPEC §4.2 lists 3 top-level commands (whoami, config, auth) + 11 command groups = 14 total; `auth-cmd.ts` is a separate file not in SPEC §1 file list |
+| `getAuthMode()` in auth.ts | Non-throwing auth mode detection (`'bearer' | 'api_key' | 'none'`) used by `auth-cmd.ts`; keeps auth logic in the auth module, testable independently |
+| `_resetConfigCache()` in config.ts | Exported test utility to reset lazy-loaded `env-paths` cache so tests can control the mock return value before the first call |
+| Lazy `cachedPaths` pattern | Top-level `const paths = envPaths(...)` runs at module load, before mocks are set up; lazy pattern allows test reset via `_resetConfigCache()` |
 
 ## Notes
 <!--

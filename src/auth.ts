@@ -14,3 +14,9 @@ export function getAuthHeaders(): Record<string, string> {
     'No credentials found. Set the ICU_API_KEY environment variable or the ICU_ACCESS_TOKEN environment variable.',
   );
 }
+
+export function getAuthMode(): 'bearer' | 'api_key' | 'none' {
+  if (process.env.ICU_ACCESS_TOKEN) return 'bearer';
+  if (process.env.ICU_API_KEY) return 'api_key';
+  return 'none';
+}
