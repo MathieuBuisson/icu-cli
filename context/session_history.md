@@ -1,6 +1,6 @@
 # Session History - icu-cli
 
-**Date:** 2026-05-11
+**Date:** 2026-05-12
 **Repository:** c:\git\icu-cli
 
 ---
@@ -79,6 +79,21 @@ Implemented four core modules: `src/config.ts` (env-paths XDG config dir, async 
 
 ---
 
+### 6. Phase 2 Tasks 6–7: cli.ts, index.ts, commands/
+
+Created `src/cli.ts` (Commander program setup: name 'icu', version '0.1.0', description, global options --athlete/--format, configureOutput writeErr override, exitOverride, registerCommands), `src/index.ts` (entry point, imports and calls run()), `src/commands/index.ts` (registers all 14 commands), and 14 command stub modules (whoami, config-cmd, auth-cmd, athletes, activities, events, wellness, workouts, sport-settings, chats, weather, shared-events, fitness, performance) — each with placeholder "Not implemented yet" actions. Created `tsup.config.ts` (entry: src/index.ts, format: esm, outDir: dist) to fix "No input files" build error. Fixed `Command as Cmd` import alias in auth-cmd.ts, fitness.ts, shared-events.ts (needed because addCommand calls new Command(...) which requires Command as a value, not just a type). Fixed run() in cli.ts: exit code handling distinguishes CommanderError (--version/--help exit 0, invalid commands exit 1) from regular Error. Verified: `npm run lint` passes (24 files), `npm run build` produces dist/index.js (ESM, 9.26 KB), `icu --help` shows all 14 commands, `icu --version` outputs 0.1.0.
+
+**Files explored:**
+- `SPEC.md`
+- `package.json`
+- `src/cli.ts`
+- `src/index.ts`
+- `src/commands/index.ts`
+- `src/commands/*.ts` (14 stub files)
+- `tsup.config.ts`
+
+---
+
 ## Last action
-Implemented Phase 2 core modules: src/config.ts, src/auth.ts, src/client.ts, src/output.ts, src/input.ts. All lint cleanly. Context files updated.
-2026-05-11_22:58
+Implemented Phase 2 tasks 6–7: src/cli.ts, src/index.ts, all 14 command stub modules, tsup.config.ts. Verified build, lint, --help, --version all work. Context files updated.
+2026-05-12_15:03

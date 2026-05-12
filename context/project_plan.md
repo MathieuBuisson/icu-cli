@@ -44,8 +44,8 @@ Phase 2
 - [x] Implement `src/client.ts` — create typed `openapi-fetch` client with base URL and auth headers. See [client.ts](../SPEC.md#clientts).
 - [x] Implement `src/output.ts` — TTY detection, format resolution, JSON/table/plain renderers. See [output.ts](../SPEC.md#outputts) and [Output Formatting](../SPEC.md#8-output-formatting).
 - [x] Implement `src/input.ts` — file path / stdin reader, JSON parsing. See [input.ts](../SPEC.md#inputts) and [File Input Handling](../SPEC.md#9-file-input-handling).
-- [ ] Implement `src/cli.ts` — Commander program setup, global options, error handling. See [cli.ts](../SPEC.md#clits).
-- [ ] Implement `src/index.ts` — entry point
+- [x] Implement `src/cli.ts` — Commander program setup, global options, error handling. See [cli.ts](../SPEC.md#clits).
+- [x] Implement `src/index.ts` — entry point
 - [ ] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`. See [Automated Tests](../SPEC.md#automated-tests).
 - **Status:** in_progress
 
@@ -123,6 +123,9 @@ Phase 2
 | `biome` for lint + format | Single Rust-based tool replacing ESLint + Prettier; near-instant execution |
 | `env-paths` for config directory | Cross-platform XDG-compliant paths without manual platform detection |
 | Bearer token precedence over API key | OAuth is the more secure credential; if a user has both configured, prefer the stronger one |
+| `tsup.config.ts` ESM entry | tsup needs an explicit config file to know entry point and format; defaults to CJS |
+| `Command as Cmd` import alias | `addCommand(new Command(...))` requires `Command` as a value (constructor), not just a type; alias avoids shadowing the `Command` type parameter |
+| 14 commands (not 13) | SPEC §4.2 lists 3 top-level commands (whoami, config, auth) + 11 command groups = 14 total; `auth-cmd.ts` is a separate file not in SPEC §1 file list |
 
 ## Notes
 <!--
