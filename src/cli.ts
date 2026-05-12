@@ -23,6 +23,13 @@ export async function run(): Promise<void> {
   try {
     await program.parseAsync(process.argv);
   } catch (error) {
+    const exitCode = (error as { exitCode?: number }).exitCode;
+    if (typeof exitCode === 'number') {
+      if (exitCode !== 0) {
+        process.stderr.write(`${error}\n`);
+      }
+      process.exit(exitCode);
+    }
     if (error instanceof Error) {
       process.stderr.write(`${error.message}\n`);
     }
