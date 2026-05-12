@@ -56,7 +56,7 @@ Phase 2
 - [ ] Implement `src/commands/whoami.ts`. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
 - [ ] Implement `src/commands/config-cmd.ts` (`config set`, `config get`, `config list`). See [Top-Level Commands](../SPEC.md#42-top-level-commands).
 - [ ] Implement `icu auth status` command. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
-- [ ] Write integration tests for top-level commands
+- [ ] Write integration tests for top-level commands : whoami, config, auth status.
 - **Status:** pending
 
 ### Phase 4: Command Groups — Data Access
