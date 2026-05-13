@@ -1,0 +1,257 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('../../src/client.js', () => ({
+  default: { GET: vi.fn() },
+}));
+
+vi.mock('../../src/auth.js', () => ({
+  getAuthMode: vi.fn(() => 'bearer'),
+  getAuthHeaders: vi.fn(() => ({ Authorization: 'Bearer test' })),
+}));
+
+vi.mock('node:fs/promises', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs/promises')>();
+  return { ...actual, readFile: vi.fn(), writeFile: vi.fn(), mkdir: vi.fn() };
+});
+
+vi.mock('env-paths');
+
+import envPaths from 'env-paths';
+import client from '../../src/client.js';
+import { _resetConfigCache } from '../../src/config.js';
+
+const ATHLETE_DATA = {
+  id: 'A123',
+  name: 'Test User',
+  email: 'test@example.com',
+  city: 'Dublin',
+  country: 'Ireland',
+  timezone: 'Europe/Dublin',
+  sex: 'M',
+};
+
+describe('whoami', () => {
+  let tempDir: string;
+  let mockExit: ReturnType<typeof vi.spyOn>;
+  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
+  let mockStdoutWrite: ReturnType<typeof vi.spyOn>;
+  let mockReadFile: ReturnType<typeof vi.fn>;
+  let mockWriteFile: ReturnType<typeof vi.fn>;
+  let mockMkdir: ReturnType<typeof vi.fn>;
+
+  beforeEach(async () => {
+    _resetConfigCache();
+    tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-whoami-test-'));
+    vi.mocked(envPaths).mockReturnValue({ config: tempDir });
+
+    const fs = await import('node:fs/promises');
+    mockReadFile = vi.mocked(fs.readFile);
+    mockWriteFile = vi.mocked(fs.writeFile);
+    mockMkdir = vi.mocked(fs.mkdir);
+    mockReadFile.mockReset();
+    mockReadFile.mockResolvedValue('{}');
+    mockWriteFile.mockReset();
+    mockMkdir.mockReset();
+
+    const mockGet = vi.mocked(client.GET);
+    mockGet.mockReset();
+  });
+
+  afterEach(async () => {
+    mockExit?.mockRestore();
+    mockStderrWrite?.mockRestore();
+    mockStdoutWrite?.mockRestore();
+    await rm(tempDir, { recursive: true, force: true });
+  });
+
+  describe('success', () => {
+    it('exits with 0 on success', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it('outputs athlete info to stdout', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockStdoutWrite).toHaveBeenCalled();
+      const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
+      expect(output).toContain('A123');
+      expect(output).toContain('Test User');
+    });
+
+    it('--format table outputs table with headers', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami', '--format', 'table'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(0);
+    });
+
+    it('--format plain outputs field-per-line', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami', '--format', 'plain'];
+      await run();
+      const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
+      expect(output).toContain('Athlete ID: A123');
+      expect(output).toContain('Name: Test User');
+      expect(output).toContain('Email: test@example.com');
+      expect(output).toContain('City: Dublin');
+      expect(output).toContain('Country: Ireland');
+      expect(output).toContain('Timezone: Europe/Dublin');
+      expect(output).toContain('Sex: M');
+    });
+
+    it('--format json outputs valid JSON', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami', '--format', 'json'];
+      await run();
+      const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
+      expect(() => JSON.parse(output.trim())).not.toThrow();
+    });
+
+    it('--save writes athleteId to config', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      mockMkdir.mockResolvedValueOnce(undefined as never);
+      mockWriteFile.mockResolvedValueOnce(undefined as never);
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami', '--save'];
+      await run();
+      expect(mockWriteFile).toHaveBeenCalled();
+      const writeCall = mockWriteFile.mock.calls[0];
+      const writtenData = JSON.parse(writeCall[1] as string);
+      expect(writtenData.athleteId).toBe('A123');
+    });
+  });
+
+  describe('error handling', () => {
+    it('exits with 1 and prints error on 401', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({
+        data: undefined,
+        error: { status: 401, message: 'Unauthorized' },
+      });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('Authentication failed');
+    });
+
+    it('exits with 1 and prints error on 403', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({
+        data: undefined,
+        error: { status: 403, message: 'Forbidden' },
+      });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('Access denied');
+    });
+
+    it('exits with 1 and prints error on 404', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({
+        data: undefined,
+        error: { status: 404, message: 'Not found' },
+      });
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('Resource not found');
+    });
+
+    it('exits with 1 on network error', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+
+      mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+      mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+      mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+      Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
+
+      const { run } = await import('../../src/cli.js');
+      process.argv = ['node', 'icu', 'whoami'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('ECONNREFUSED');
+    });
+  });
+});
