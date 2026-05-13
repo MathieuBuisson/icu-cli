@@ -20,6 +20,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 vi.mock('env-paths');
 
 import envPaths from 'env-paths';
+import { run } from '../../src/cli.js';
 import client from '../../src/client.js';
 import { _resetConfigCache } from '../../src/config.js';
 
@@ -35,8 +36,10 @@ const ATHLETE_DATA = {
 
 describe('auth status', () => {
   let tempDir: string;
+  let originalIsTTY: boolean | undefined;
 
   beforeEach(async () => {
+    originalIsTTY = process.stdout.isTTY;
     _resetConfigCache();
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-auth-test-'));
     vi.mocked(envPaths).mockReturnValue({ config: tempDir });
@@ -46,6 +49,12 @@ describe('auth status', () => {
   });
 
   afterEach(async () => {
+    if (originalIsTTY === undefined) {
+      Reflect.deleteProperty(process.stdout, 'isTTY');
+    } else {
+      Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
+    }
+    vi.restoreAllMocks();
     await rm(tempDir, { recursive: true, force: true });
   });
 
@@ -57,7 +66,6 @@ describe('auth status', () => {
       .spyOn(process, 'exit')
       .mockImplementation((() => {}) as typeof process.exit);
 
-    const { run } = await import('../../src/cli.js');
     process.argv = ['node', 'icu', 'auth', 'status'];
     await run();
     expect(mockExit).toHaveBeenCalledWith(0);
@@ -72,7 +80,6 @@ describe('auth status', () => {
       .mockImplementation((() => {}) as typeof process.exit);
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
-    const { run } = await import('../../src/cli.js');
     process.argv = ['node', 'icu', 'auth', 'status', '--format', 'table'];
     await run();
     expect(mockExit).toHaveBeenCalledWith(0);
@@ -82,9 +89,9 @@ describe('auth status', () => {
     const mockGet = vi.mocked(client.GET);
     mockGet.mockImplementation(() => Promise.resolve({ data: ATHLETE_DATA, error: undefined }));
 
+    vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
     const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-    const { run } = await import('../../src/cli.js');
     process.argv = ['node', 'icu', 'auth', 'status', '--format', 'plain'];
     await run();
     const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -102,7 +109,6 @@ describe('auth status', () => {
       .mockImplementation((() => {}) as typeof process.exit);
     const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-    const { run } = await import('../../src/cli.js');
     process.argv = ['node', 'icu', 'auth', 'status', '--format', 'json'];
     await run();
     const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -124,7 +130,6 @@ describe('auth status', () => {
       .mockImplementation((() => {}) as typeof process.exit);
     const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-    const { run } = await import('../../src/cli.js');
     process.argv = ['node', 'icu', 'auth', 'status'];
     await run();
     expect(mockExit).toHaveBeenCalledWith(1);

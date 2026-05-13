@@ -16,6 +16,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 vi.mock('env-paths');
 
 import envPaths from 'env-paths';
+import { run } from '../../src/cli.js';
 import { _resetConfigCache } from '../../src/config.js';
 
 const DEFAULT_CONFIG = { athleteId: 'A123', defaultFormat: 'json' as const };
@@ -34,6 +35,7 @@ describe('config', () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await rm(tempDir, { recursive: true, force: true });
   });
 
@@ -49,7 +51,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'athleteId', 'foo'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -69,7 +70,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'defaultFormat', 'json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -87,7 +87,6 @@ describe('config', () => {
         .spyOn(process, 'exit')
         .mockImplementation((() => {}) as typeof process.exit);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'defaultFormat', 'table'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -103,7 +102,6 @@ describe('config', () => {
         .spyOn(process, 'exit')
         .mockImplementation((() => {}) as typeof process.exit);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'defaultFormat', 'plain'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -119,7 +117,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'defaultFormat', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -134,7 +131,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'set', 'unknownkey', 'value'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -155,7 +151,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'get', 'athleteId'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -174,7 +169,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'get', 'defaultFormat'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -188,7 +182,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'get', 'unknownkey'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -209,7 +202,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -229,7 +221,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -248,7 +239,6 @@ describe('config', () => {
         .mockImplementation((() => {}) as typeof process.exit);
       const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);

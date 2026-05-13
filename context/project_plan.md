@@ -17,7 +17,7 @@ Build a cross-platform TypeScript CLI (`icu`) that wraps the Intervals.icu REST 
   WHAT: Which phase you're currently working on.
   WHY: Quick reference for where you are in the project. Update this as you progress.
 -->
-Phase 3
+Phase 4
 
 ## Phases
 
@@ -49,15 +49,15 @@ Phase 3
 - [x] Write unit tests for `config.ts`, `auth.ts`, `output.ts`, `input.ts`, `cli.ts`, `client.ts`. See [Automated Tests](../SPEC.md#automated-tests). 52 tests total. All SPEC §14 scenarios covered except stdin and integration tests.
 - **Status:** complete
 
-### Phase 3: Top-Level Commands
+### Phase 3: Top-Level Commands — **COMPLETE**
 <!--
   Implement the top-level commands (whoami, config, auth status).
 -->
 - [x] Implement `src/commands/whoami.ts` — GET /api/v1/athlete/0/profile, --save flag, table/plain/json output with 7 columns. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
 - [x] Implement `src/commands/config-cmd.ts` (`config set`, `config get`, `config list`) — validates keys and format values, merges into existing config. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
 - [x] Implement `icu auth status` command — calls /api/v1/athlete/0/profile, shows auth mode + athlete info, discloses which env var is set. See [Top-Level Commands](../SPEC.md#42-top-level-commands).
-- [ ] Write integration tests for top-level commands: whoami, config, auth status.
-- **Status:** in_progress (tasks 1–3 complete; integration tests pending)
+- [x] Write integration tests for top-level commands: whoami, config, auth status. 83 tests total (56 unit + 27 integration). All pass.
+- **Status:** complete
 
 ### Phase 4: Command Groups — Data Access
 <!--

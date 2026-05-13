@@ -20,6 +20,7 @@ vi.mock('node:fs/promises', async (importOriginal) => {
 vi.mock('env-paths');
 
 import envPaths from 'env-paths';
+import { run } from '../../src/cli.js';
 import client from '../../src/client.js';
 import { _resetConfigCache } from '../../src/config.js';
 
@@ -41,8 +42,10 @@ describe('whoami', () => {
   let mockReadFile: ReturnType<typeof vi.fn>;
   let mockWriteFile: ReturnType<typeof vi.fn>;
   let mockMkdir: ReturnType<typeof vi.fn>;
+  let originalIsTTY: boolean | undefined;
 
   beforeEach(async () => {
+    originalIsTTY = process.stdout.isTTY;
     _resetConfigCache();
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-whoami-test-'));
     vi.mocked(envPaths).mockReturnValue({ config: tempDir });
@@ -61,6 +64,12 @@ describe('whoami', () => {
   });
 
   afterEach(async () => {
+    if (originalIsTTY === undefined) {
+      Reflect.deleteProperty(process.stdout, 'isTTY');
+    } else {
+      Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
+    }
+    vi.restoreAllMocks();
     mockExit?.mockRestore();
     mockStderrWrite?.mockRestore();
     mockStdoutWrite?.mockRestore();
@@ -77,7 +86,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -92,7 +100,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockStdoutWrite).toHaveBeenCalled();
@@ -110,7 +117,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami', '--format', 'table'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
@@ -125,7 +131,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami', '--format', 'plain'];
       await run();
       const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -147,7 +152,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami', '--format', 'json'];
       await run();
       const output = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -166,7 +170,6 @@ describe('whoami', () => {
       mockMkdir.mockResolvedValueOnce(undefined as never);
       mockWriteFile.mockResolvedValueOnce(undefined as never);
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami', '--save'];
       await run();
       expect(mockWriteFile).toHaveBeenCalled();
@@ -189,7 +192,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -209,7 +211,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -229,7 +230,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -246,7 +246,6 @@ describe('whoami', () => {
       mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: undefined, configurable: true });
 
-      const { run } = await import('../../src/cli.js');
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);

@@ -146,6 +146,7 @@ icu-cli/
 │   ├── commands/                 # One module per command group
 │   │   ├── whoami.ts
 │   │   ├── config-cmd.ts
+│   │   ├── auth-cmd.ts
 │   │   ├── athletes.ts
 │   │   ├── activities.ts
 │   │   ├── events.ts
