@@ -164,6 +164,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
@@ -177,6 +178,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 403, message: 'Forbidden' },
+        response: { status: 403 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
@@ -190,6 +192,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 404, message: 'Not found' },
+        response: { status: 404 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
@@ -293,6 +296,7 @@ describe('athletes', () => {
       vi.mocked(client.PUT).mockResolvedValueOnce({
         data: undefined,
         error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'data.json'];
@@ -340,6 +344,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 404, message: 'Not found' },
+        response: { status: 404 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123'];
@@ -421,6 +426,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 404, message: 'Not found' },
+        response: { status: 404 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get', 'A123'];
@@ -503,6 +509,7 @@ describe('athletes', () => {
       vi.mocked(client.PUT).mockResolvedValueOnce({
         data: undefined,
         error: { status: 403, message: 'Forbidden' },
+        response: { status: 403 } as Response,
       });
 
       process.argv = [
@@ -583,6 +590,7 @@ describe('athletes', () => {
       vi.mocked(client.GET).mockResolvedValueOnce({
         data: undefined,
         error: { status: 404, message: 'Not found' },
+        response: { status: 404 } as Response,
       });
 
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123'];

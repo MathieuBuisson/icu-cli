@@ -88,16 +88,17 @@ const SUMMARY_PLAIN_FIELD_HEADERS: Record<string, string> = {
   distance: 'Distance',
 };
 
-function handleError(error: unknown, _operation: string): never {
-  const status = (error as { status?: number }).status;
+function handleError(status: number, error?: unknown): never {
   if (status === 401) {
     process.stderr.write('Authentication failed. Check your credentials.\n');
   } else if (status === 403) {
     process.stderr.write('Access denied for this resource.\n');
   } else if (status === 404) {
     process.stderr.write('Resource not found.\n');
-  } else {
+  } else if (error) {
     process.stderr.write(`Error: ${error}\n`);
+  } else {
+    process.stderr.write(`Error: HTTP ${status}\n`);
   }
   process.exit(1);
 }
@@ -121,12 +122,12 @@ export function register(program: Command): void {
     .description('Get athlete by ID')
     .action(async (id: string | undefined) => {
       const athleteId = await resolveId(id);
-      const { data, error } = await client.GET('/api/v1/athlete/{id}', {
+      const { data, error, response } = await client.GET('/api/v1/athlete/{id}', {
         params: { path: { id: athleteId } },
       });
 
       if (error) {
-        handleError(error, 'get');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
@@ -169,13 +170,13 @@ export function register(program: Command): void {
         process.exit(1);
       }
 
-      const { data, error } = await client.PUT('/api/v1/athlete/{id}', {
+      const { data, error, response } = await client.PUT('/api/v1/athlete/{id}', {
         params: { path: { id: athleteId } },
         body: body as object,
       });
 
       if (error) {
-        handleError(error, 'update');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
@@ -204,12 +205,12 @@ export function register(program: Command): void {
     .description('Get athlete profile')
     .action(async (id: string | undefined) => {
       const athleteId = await resolveId(id);
-      const { data, error } = await client.GET('/api/v1/athlete/{id}/profile', {
+      const { data, error, response } = await client.GET('/api/v1/athlete/{id}/profile', {
         params: { path: { id: athleteId } },
       });
 
       if (error) {
-        handleError(error, 'profile');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
@@ -246,12 +247,12 @@ export function register(program: Command): void {
     .description('Get athlete training plan')
     .action(async (id: string | undefined) => {
       const athleteId = await resolveId(id);
-      const { data, error } = await client.GET('/api/v1/athlete/{id}/training-plan', {
+      const { data, error, response } = await client.GET('/api/v1/athlete/{id}/training-plan', {
         params: { path: { id: athleteId } },
       });
 
       if (error) {
-        handleError(error, 'training-plan get');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
@@ -294,13 +295,13 @@ export function register(program: Command): void {
         process.exit(1);
       }
 
-      const { data, error } = await client.PUT('/api/v1/athlete/{id}/training-plan', {
+      const { data, error, response } = await client.PUT('/api/v1/athlete/{id}/training-plan', {
         params: { path: { id: athleteId } },
         body: body as object,
       });
 
       if (error) {
-        handleError(error, 'training-plan update');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
@@ -331,13 +332,13 @@ export function register(program: Command): void {
     .option('--end <date>', 'End date (ISO-8601)')
     .action(async (id: string | undefined, options: { start?: string; end?: string }) => {
       const athleteId = await resolveId(id);
-      const { data, error } = await client.GET('/api/v1/athlete/{id}/athlete-summary', {
+      const { data, error, response } = await client.GET('/api/v1/athlete/{id}/athlete-summary', {
         params: { path: { id: athleteId, ext: '' } },
         query: { start: options.start, end: options.end },
       });
 
       if (error) {
-        handleError(error, 'summary');
+        handleError(response?.status ?? 0, error);
         return;
       }
 
