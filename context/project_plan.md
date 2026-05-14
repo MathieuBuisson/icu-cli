@@ -32,7 +32,7 @@ Phase 4
 - [x] Install dev dependencies (`typescript`, `tsup`, `tsx`, `vitest`, `@biomejs/biome`, `openapi-typescript`)
 - [x] Download and pin the Intervals.icu OpenAPI spec to `api/openapi-spec.json`. See [API Client Generation](../SPEC.md#12-api-client-generation).
 - [x] Run `openapi-typescript` to generate `src/generated/api.d.ts`
-- [ ] Verify the project builds (`tsup`) and lints (`biome check`) cleanly
+- [x] Verify the project builds (`tsup`) and lints (`biome check`) cleanly
 - **Status:** complete
 
 ### Phase 2: Core Modules — **COMPLETE**
