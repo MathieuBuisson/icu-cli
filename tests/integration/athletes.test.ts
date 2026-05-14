@@ -79,8 +79,13 @@ const SUMMARY_DATA = [
 describe('athletes', () => {
   let tempDir: string;
   let originalIsTTY: boolean | undefined;
+  let originalArgv: string[];
+  let mockExit: ReturnType<typeof vi.spyOn>;
+  let mockStdoutWrite: ReturnType<typeof vi.spyOn>;
+  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
 
   beforeEach(async () => {
+    originalArgv = [...process.argv];
     originalIsTTY = process.stdout.isTTY;
     _resetConfigCache();
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-athletes-test-'));
@@ -94,26 +99,27 @@ describe('athletes', () => {
 
     vi.mocked(client.GET).mockReset();
     vi.mocked(client.PUT).mockReset();
+
+    mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
+    mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
   });
 
   afterEach(async () => {
+    process.argv = originalArgv;
     if (originalIsTTY === undefined) {
       Reflect.deleteProperty(process.stdout, 'isTTY');
     } else {
       Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
     }
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
     await rm(tempDir, { recursive: true, force: true });
   });
 
   describe('athletes get', () => {
     it('exits with 0 on success', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const _mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
@@ -122,11 +128,6 @@ describe('athletes', () => {
 
     it('outputs table with headers', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
@@ -141,11 +142,6 @@ describe('athletes', () => {
     it('outputs plain field-per-line', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
 
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123', '--format', 'plain'];
       await run();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -156,11 +152,6 @@ describe('athletes', () => {
 
     it('outputs valid JSON', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
-
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123', '--format', 'json'];
       await run();
@@ -175,11 +166,6 @@ describe('athletes', () => {
         error: { status: 401, message: 'Unauthorized' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -192,11 +178,6 @@ describe('athletes', () => {
         data: undefined,
         error: { status: 403, message: 'Forbidden' },
       });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
@@ -211,11 +192,6 @@ describe('athletes', () => {
         error: { status: 404, message: 'Not found' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -225,11 +201,6 @@ describe('athletes', () => {
 
     it('exits with 1 on network error', async () => {
       vi.mocked(client.GET).mockRejectedValueOnce(new Error('ECONNREFUSED'));
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
@@ -244,11 +215,6 @@ describe('athletes', () => {
         data: null,
         error: { status: 404, message: 'Not found' },
       });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get'];
       await run();
@@ -265,11 +231,6 @@ describe('athletes', () => {
       );
 
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const _mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'get', 'POS_A123'];
       await run();
@@ -290,22 +251,23 @@ describe('athletes', () => {
       const fs = await import('node:fs/promises');
       vi.mocked(fs.readFile).mockImplementation(() => Promise.resolve('{"name": "Updated Name"}'));
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const _mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'data.json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
+      expect(vi.mocked(client.PUT).mock.calls[0][1]?.body).toEqual({ name: 'Updated Name' });
     });
 
-    it('exits with 1 when --file is missing', async () => {
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    it('exits with 1 on file read error', async () => {
+      const fs = await import('node:fs/promises');
+      vi.mocked(fs.readFile).mockRejectedValueOnce(new Error('ENOENT: no such file or directory'));
 
+      process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'missing.json'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('ENOENT');
+    });
+    it('exits with 1 when --file is missing', async () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -316,11 +278,6 @@ describe('athletes', () => {
     it('exits with 1 on invalid JSON input', async () => {
       const fs = await import('node:fs/promises');
       vi.mocked(fs.readFile).mockImplementation(() => Promise.resolve('not valid json'));
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'invalid.json'];
       await run();
@@ -338,11 +295,6 @@ describe('athletes', () => {
         error: { status: 401, message: 'Unauthorized' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'data.json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -354,11 +306,6 @@ describe('athletes', () => {
   describe('athletes profile', () => {
     it('outputs table with athlete data', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_PROFILE_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123'];
@@ -373,11 +320,6 @@ describe('athletes', () => {
     it('outputs plain field-per-line', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_PROFILE_DATA, error: undefined });
 
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123', '--format', 'plain'];
       await run();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -387,11 +329,6 @@ describe('athletes', () => {
 
     it('outputs valid JSON', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: ATHLETE_PROFILE_DATA, error: undefined });
-
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123', '--format', 'json'];
       await run();
@@ -404,11 +341,6 @@ describe('athletes', () => {
         data: undefined,
         error: { status: 404, message: 'Not found' },
       });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123'];
       await run();
@@ -424,11 +356,6 @@ describe('athletes', () => {
         error: { status: 404, message: 'Not found' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'profile'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -440,11 +367,6 @@ describe('athletes', () => {
   describe('athletes training-plan get', () => {
     it('outputs table with training plan columns', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: TRAINING_PLAN_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get', 'A123'];
@@ -458,11 +380,6 @@ describe('athletes', () => {
 
     it('outputs plain field-per-line', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: TRAINING_PLAN_DATA, error: undefined });
-
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = [
         'node',
@@ -483,11 +400,6 @@ describe('athletes', () => {
 
     it('outputs valid JSON', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: TRAINING_PLAN_DATA, error: undefined });
-
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = [
         'node',
@@ -511,11 +423,6 @@ describe('athletes', () => {
         error: { status: 404, message: 'Not found' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -529,11 +436,6 @@ describe('athletes', () => {
         data: null,
         error: { status: 404, message: 'Not found' },
       });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get'];
       await run();
@@ -551,11 +453,6 @@ describe('athletes', () => {
       const fs = await import('node:fs/promises');
       vi.mocked(fs.readFile).mockImplementation(() => Promise.resolve('{"training_plan_id": 2}'));
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const _mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
       process.argv = [
         'node',
         'icu',
@@ -568,14 +465,10 @@ describe('athletes', () => {
       ];
       await run();
       expect(mockExit).toHaveBeenCalledWith(0);
+      expect(vi.mocked(client.PUT).mock.calls[0][1]?.body).toEqual({ training_plan_id: 2 });
     });
 
     it('exits with 1 when --file is missing', async () => {
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -586,11 +479,6 @@ describe('athletes', () => {
     it('exits with 1 on invalid JSON input', async () => {
       const fs = await import('node:fs/promises');
       vi.mocked(fs.readFile).mockImplementation(() => Promise.resolve('not valid json'));
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = [
         'node',
@@ -617,11 +505,6 @@ describe('athletes', () => {
         error: { status: 403, message: 'Forbidden' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = [
         'node',
         'icu',
@@ -642,11 +525,6 @@ describe('athletes', () => {
   describe('athletes summary', () => {
     it('outputs table with summary columns', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: SUMMARY_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
       Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
 
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123'];
@@ -661,11 +539,6 @@ describe('athletes', () => {
     it('outputs plain field-per-line with separators', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: SUMMARY_DATA, error: undefined });
 
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123', '--format', 'plain'];
       await run();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
@@ -675,11 +548,6 @@ describe('athletes', () => {
 
     it('outputs valid JSON array', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: SUMMARY_DATA, error: undefined });
-
-      const _mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123', '--format', 'json'];
       await run();
@@ -692,10 +560,6 @@ describe('athletes', () => {
 
     it('passes --start and --end as query params', async () => {
       vi.mocked(client.GET).mockResolvedValueOnce({ data: SUMMARY_DATA, error: undefined });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
 
       process.argv = [
         'node',
@@ -721,11 +585,6 @@ describe('athletes', () => {
         error: { status: 404, message: 'Not found' },
       });
 
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
@@ -739,11 +598,6 @@ describe('athletes', () => {
         data: null,
         error: { status: 404, message: 'Not found' },
       });
-
-      const mockExit = vi
-        .spyOn(process, 'exit')
-        .mockImplementation((() => {}) as typeof process.exit);
-      const mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
 
       process.argv = ['node', 'icu', 'athletes', 'summary'];
       await run();
