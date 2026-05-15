@@ -278,5 +278,27 @@ Created comprehensive integration tests for activities command group following p
 ---
 
 ## Last action
-Phase 4 complete — activities.ts implemented with 11 subcommands, output-helpers.ts created for code reuse, 22 integration tests added for activities (151 total tests), comprehensive error handling fixes applied.
-2026-05-15_13:00
+Phase 4 — events.ts implemented with 6 subcommands (list, get, create, update, delete, download), strict integer validation (Number() instead of parseInt()), output path validation (parent dir exists, bare filename → current dir), CSV format fix ('' for JSON, '.csv' for CSV), activities.ts validation fixes (limit, output path), 152 tests passing.
+2026-05-15_14:00
+
+---
+
+### 9. Phase 4 Task 10: events.ts Implementation
+
+Implemented `src/commands/events.ts` with 6 subcommands: `list`, `get`, `create`, `update`, `delete`, `download`. Key fixes applied:
+
+- **API path bug**: Fixed format parameter bug where 'JSON' was passed instead of '' for JSON, '.csv' for CSV. Empty string '' produces valid /events path.
+- **Strict integer validation**: Changed from parseInt() to Number() for strict validation — parseInt("123abc") returns 123, Number("123abc") returns NaN.
+- **Output path validation**: Added validation that parent directory exists, treating bare filename as current directory.
+- **Static import consistency**: Added writeFile to top-level static imports for consistency.
+- **activities.ts fixes**: Added --limit validation (integer, 1-1000), output path validation for download-fit/download-gpx.
+- **Duplicate test block**: Fixed duplicate describe block in activities.test.ts.
+- **Upload test coverage**: Added upload test to activities.test.ts.
+
+All tests passing (152), lint clean, build successful.
+
+**Files explored:**
+- `src/commands/events.ts` — Main implementation
+- `src/commands/activities.ts` — Validation fixes
+- `src/generated/api.d.ts` — API type definitions for endpoint paths
+- `tests/integration/activities.test.ts` — Test fixes

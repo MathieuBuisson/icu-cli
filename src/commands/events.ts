@@ -1,4 +1,4 @@
-import { access } from 'node:fs/promises';
+import { access, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import type { Command } from 'commander';
 import client from '../client.js';
@@ -111,13 +111,13 @@ function validateCategories(categoriesStr: string): boolean {
 }
 
 function validateLimit(limitStr: string): boolean {
-  const num = parseInt(limitStr, 10);
-  return !Number.isNaN(num) && num > 0 && Number.isInteger(num);
+  const num = Number(limitStr);
+  return Number.isInteger(num) && num > 0;
 }
 
 function validateEventId(eventIdStr: string): boolean {
-  const num = parseInt(eventIdStr, 10);
-  return !Number.isNaN(num) && Number.isInteger(num);
+  const num = Number(eventIdStr);
+  return Number.isInteger(num) && num > 0;
 }
 
 function validateExtension(ext: string): boolean {
@@ -178,7 +178,7 @@ export function register(program: Command): void {
         }
 
         const athleteId = await resolveId(undefined);
-        const format = options.csv ? '.csv' : 'JSON';
+        const format = options.csv ? '.csv' : '';
 
         const { data, error, response } = await client.GET('/api/v1/athlete/{id}/events{format}', {
           params: { path: { id: athleteId, format } },
@@ -397,7 +397,6 @@ export function register(program: Command): void {
 
       const buffer = Buffer.from(data as ArrayBuffer);
       if (options.output) {
-        const { writeFile } = await import('node:fs/promises');
         await writeFile(options.output, buffer);
         process.stdout.write(`Saved workout file to: ${options.output}\n`);
       } else {

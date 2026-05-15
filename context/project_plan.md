@@ -67,9 +67,10 @@ Phase 4
 - [x] Write integration tests for athletes command group. 34 tests covering get, update, profile, training-plan get/update, summary subcommands. 118 tests total (83 existing + 34 new + 1 new test added = 118).
 - [x] Implement `src/commands/activities.ts` (`list`, `get`, `create`, `upload`, `update`, `delete`, `search`, `streams`, `intervals`, `download-fit`, `download-gpx`). See [icu activities](../SPEC.md#icu-activities).
 - [x] Write integration tests for activities command group. 22 tests covering list, get, create, update, delete, search, streams, intervals, download-fit, download-gpx subcommands. 151 tests total.
-- [ ] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events).
+- [x] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events). Strict validation (Number() vs parseInt), output path validation, CSV format fix, static import consistency. 152 tests passing.
+- [ ] Write integration tests for events command group, covering `list`, `get`, `create`, `update`, `delete`, `download` subcommands.
 - [ ] Implement `src/commands/wellness.ts` (`list`, `get`, `update`, `upload`). See [icu wellness](../SPEC.md#icu-wellness).
-- [ ] Write integration tests for each command group (mocked HTTP responses)
+- [ ] Write integration tests for wellness command group, covering `list`, `get`, `update`, `upload` subcommands.
 - **Status:** in_progress
 
 ### Phase 5: Command Groups — Planning & Social

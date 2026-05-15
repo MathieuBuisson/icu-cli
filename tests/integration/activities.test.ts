@@ -278,6 +278,41 @@ describe('activities', () => {
       const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
       expect(stderr).toContain('Resource not found');
     });
+
+    it('exits with 1 and prints auth error on 401', async () => {
+      const mockGet = vi.mocked(client.GET);
+      mockGet.mockResolvedValueOnce({
+        data: undefined,
+        error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
+      });
+
+      process.argv = ['node', 'icu', 'activities', 'intervals', 'act123'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('Authentication failed');
+    });
+  });
+
+  describe('upload', () => {
+    it('exits with 1 and prints auth error on 401', async () => {
+      const mockPost = vi.mocked(client.POST);
+      mockPost.mockResolvedValueOnce({
+        data: undefined,
+        error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
+      });
+
+      const fs = await import('node:fs/promises');
+      vi.mocked(fs.readFile).mockResolvedValue(Buffer.from('fake fit data'));
+
+      process.argv = ['node', 'icu', 'activities', 'upload', 'test.fit'];
+      await run();
+      expect(mockExit).toHaveBeenCalledWith(1);
+      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
+      expect(stderr).toContain('Authentication failed');
+    });
   });
 
   describe('download-fit', () => {
@@ -365,23 +400,6 @@ describe('activities', () => {
       });
 
       process.argv = ['node', 'icu', 'activities', 'download-gpx', 'act123'];
-      await run();
-      expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
-    });
-  });
-
-  describe('intervals', () => {
-    it('exits with 1 and prints auth error on 401', async () => {
-      const mockGet = vi.mocked(client.GET);
-      mockGet.mockResolvedValueOnce({
-        data: undefined,
-        error: { status: 401, message: 'Unauthorized' },
-        response: { status: 401 } as Response,
-      });
-
-      process.argv = ['node', 'icu', 'activities', 'intervals', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
       const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');

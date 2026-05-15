@@ -128,6 +128,11 @@ async function validateOutputPath(outputPath: string): Promise<boolean> {
   }
 }
 
+function validateLimit(limitStr: string): boolean {
+  const num = Number(limitStr);
+  return Number.isInteger(num) && num > 0;
+}
+
 export function register(program: Command): void {
   const cmd = program.command('activities').description('Manage activities');
 
@@ -140,6 +145,11 @@ export function register(program: Command): void {
     .option('--fields <fields>', 'Comma-separated fields to include')
     .action(
       async (options: { oldest: string; newest?: string; limit?: string; fields?: string }) => {
+        if (options.limit && !validateLimit(options.limit)) {
+          process.stderr.write('Error: --limit must be a positive integer\n');
+          process.exit(1);
+        }
+
         const athleteId = await resolveId(undefined);
 
         const { data, error, response } = await client.GET('/api/v1/athlete/{id}/activities', {
@@ -147,7 +157,7 @@ export function register(program: Command): void {
           query: {
             oldest: options.oldest,
             newest: options.newest,
-            limit: options.limit ? parseInt(options.limit, 10) : undefined,
+            limit: options.limit ? Number(options.limit) : undefined,
             fields: options.fields ? options.fields.split(',') : undefined,
           },
         });
@@ -329,13 +339,18 @@ export function register(program: Command): void {
     .requiredOption('--query <query>', 'Search query')
     .option('--limit <number>', 'Limit number of results')
     .action(async (options: { query: string; limit?: string }) => {
+      if (options.limit && !validateLimit(options.limit)) {
+        process.stderr.write('Error: --limit must be a positive integer\n');
+        process.exit(1);
+      }
+
       const athleteId = await resolveId(undefined);
 
       const { data, error, response } = await client.GET('/api/v1/athlete/{id}/activities/search', {
         params: { path: { id: athleteId } },
         query: {
           query: options.query,
-          limit: options.limit ? parseInt(options.limit, 10) : undefined,
+          limit: options.limit ? Number(options.limit) : undefined,
         },
       });
 
