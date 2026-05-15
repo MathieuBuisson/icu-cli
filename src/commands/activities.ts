@@ -1,4 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { access, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import type { Command } from 'commander';
 import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
@@ -112,6 +113,19 @@ function isHidden(data: unknown): boolean {
     'source' in data &&
     !Object.hasOwn(data as Record<string, unknown>, 'name')
   );
+}
+
+async function validateOutputPath(outputPath: string): Promise<boolean> {
+  try {
+    const dir = dirname(outputPath);
+    if (dir === '.' || dir === '') {
+      return true;
+    }
+    await access(dir);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function register(program: Command): void {
@@ -384,6 +398,16 @@ export function register(program: Command): void {
     .description('Download activity as FIT file')
     .option('--output <path>', 'Output file path (or stdout if not specified)')
     .action(async (activityId: string, options: { output?: string }) => {
+      if (options.output) {
+        const isValidPath = await validateOutputPath(options.output);
+        if (!isValidPath) {
+          process.stderr.write(
+            'Error: --output path is invalid or parent directory does not exist\n',
+          );
+          process.exit(1);
+        }
+      }
+
       const { data, error, response } = await client.GET('/api/v1/activity/{id}/fit-file', {
         params: { path: { id: activityId } },
         parseAs: 'arrayBuffer',
@@ -409,6 +433,16 @@ export function register(program: Command): void {
     .description('Download activity as GPX file')
     .option('--output <path>', 'Output file path (or stdout if not specified)')
     .action(async (activityId: string, options: { output?: string }) => {
+      if (options.output) {
+        const isValidPath = await validateOutputPath(options.output);
+        if (!isValidPath) {
+          process.stderr.write(
+            'Error: --output path is invalid or parent directory does not exist\n',
+          );
+          process.exit(1);
+        }
+      }
+
       const { data, error, response } = await client.GET('/api/v1/activity/{id}/gpx-file', {
         params: { path: { id: activityId } },
         parseAs: 'arrayBuffer',

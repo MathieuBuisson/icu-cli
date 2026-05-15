@@ -164,7 +164,7 @@ options:
 
 | Subcommand | API Endpoint | Key Options |
 |---|---|---|
-| `list` | `GET /api/v1/athlete/{id}/events` | `--oldest`, `--newest`, `--category`, `--limit` |
+| `list` | `GET /api/v1/athlete/{id}/events{format}` | `--oldest`, `--newest`, `--category`, `--limit`, `--csv` |
 | `get <eventId>` | `GET /api/v1/athlete/{id}/events/{eventId}` | |
 | `create` | `POST /api/v1/athlete/{id}/events` | `--file` |
 | `update <eventId>` | `PUT /api/v1/athlete/{id}/events/{eventId}` | `--file` |
