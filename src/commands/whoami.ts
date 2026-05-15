@@ -1,7 +1,8 @@
 import type { Command } from 'commander';
 import client from '../client.js';
 import { readConfig, writeConfig } from '../config.js';
-import { type ColumnDef, formatJson, formatTable, resolveFormat } from '../output.js';
+import type { ColumnDef } from '../output.js';
+import { printOutput } from '../output-helpers.js';
 
 const COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },
@@ -31,12 +32,12 @@ export function register(program: Command): void {
     .description('Show authenticated athlete info')
     .option('--save', 'Save athlete ID to config file')
     .action(async (options: { save?: boolean }) => {
-      const { data, error } = await client.GET('/api/v1/athlete/{id}/profile', {
+      const { data, error, response } = await client.GET('/api/v1/athlete/{id}/profile', {
         params: { path: { id: '0' } },
       });
 
       if (error) {
-        const status = (error as { status?: number }).status;
+        const status = response?.status ?? 0;
         if (status === 401) {
           process.stderr.write('Authentication failed. Check your credentials.\n');
         } else if (status === 403) {
@@ -44,7 +45,9 @@ export function register(program: Command): void {
         } else if (status === 404) {
           process.stderr.write('Resource not found.\n');
         } else {
-          process.stderr.write(`Error: ${error}\n`);
+          process.stderr.write(
+            `Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`,
+          );
         }
         process.exit(1);
         return;
@@ -55,25 +58,7 @@ export function register(program: Command): void {
         await writeConfig({ ...config, athleteId: data.id });
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-      let output: string;
-      if (format === 'table') {
-        output = formatTable(data, COLUMNS);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of PLAIN_FIELD_ORDER) {
-          const value = data[key as keyof typeof data];
-          if (value !== undefined && value !== null) {
-            const header = PLAIN_FIELD_HEADERS[key];
-            lines.push(`${header}: ${value}`);
-          }
-        }
-        output = lines.join('\n');
-      } else {
-        output = formatJson(data);
-      }
-      process.stdout.write(`${output}\n`);
+      await printOutput(program, data, COLUMNS, PLAIN_FIELD_ORDER, PLAIN_FIELD_HEADERS);
       process.exit(0);
     });
 }

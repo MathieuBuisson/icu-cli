@@ -33,12 +33,12 @@ export function register(program: Command): void {
 
         const envVarLine = mode === 'bearer' ? 'ICU_ACCESS_TOKEN is set' : 'ICU_API_KEY is set';
 
-        const { data, error } = await client.GET('/api/v1/athlete/{id}/profile', {
+        const { data, error, response } = await client.GET('/api/v1/athlete/{id}/profile', {
           params: { path: { id: '0' } },
         });
 
         if (error) {
-          const status = (error as { status?: number }).status;
+          const status = response?.status ?? 0;
           if (status === 401) {
             process.stderr.write('Authentication failed. Check your credentials.\n');
           } else if (status === 403) {
@@ -46,7 +46,9 @@ export function register(program: Command): void {
           } else if (status === 404) {
             process.stderr.write('Resource not found.\n');
           } else {
-            process.stderr.write(`Error: ${error}\n`);
+            process.stderr.write(
+              `Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`,
+            );
           }
           process.exit(1);
           return;

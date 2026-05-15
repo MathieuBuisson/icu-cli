@@ -185,6 +185,7 @@ describe('whoami', () => {
       mockGet.mockResolvedValueOnce({
         data: undefined,
         error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
       });
 
       mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
@@ -204,6 +205,7 @@ describe('whoami', () => {
       mockGet.mockResolvedValueOnce({
         data: undefined,
         error: { status: 403, message: 'Forbidden' },
+        response: { status: 403 } as Response,
       });
 
       mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
@@ -223,6 +225,7 @@ describe('whoami', () => {
       mockGet.mockResolvedValueOnce({
         data: undefined,
         error: { status: 404, message: 'Not found' },
+        response: { status: 404 } as Response,
       });
 
       mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);

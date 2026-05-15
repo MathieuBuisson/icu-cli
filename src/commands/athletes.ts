@@ -1,8 +1,9 @@
 import type { Command } from 'commander';
 import client from '../client.js';
-import { readConfig, resolveAthleteId } from '../config.js';
+import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
-import { type ColumnDef, formatJson, formatTable, resolveFormat } from '../output.js';
+import type { ColumnDef } from '../output.js';
+import { printOutput } from '../output-helpers.js';
 
 const ATHLETE_COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },
@@ -96,7 +97,7 @@ function handleError(status: number, error?: unknown): never {
   } else if (status === 404) {
     process.stderr.write('Resource not found.\n');
   } else if (error) {
-    process.stderr.write(`Error: ${error}\n`);
+    process.stderr.write(`Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`);
   } else {
     process.stderr.write(`Error: HTTP ${status}\n`);
   }
@@ -131,23 +132,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, ATHLETE_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of ATHLETE_PLAIN_FIELD_ORDER) {
-          const value = data[key as keyof typeof data];
-          if (value !== undefined && value !== null) {
-            lines.push(`${ATHLETE_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        ATHLETE_COLUMNS,
+        ATHLETE_PLAIN_FIELD_ORDER,
+        ATHLETE_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -180,23 +171,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, ATHLETE_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of ATHLETE_PLAIN_FIELD_ORDER) {
-          const value = data[key as keyof typeof data];
-          if (value !== undefined && value !== null) {
-            lines.push(`${ATHLETE_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        ATHLETE_COLUMNS,
+        ATHLETE_PLAIN_FIELD_ORDER,
+        ATHLETE_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -220,23 +201,13 @@ export function register(program: Command): void {
         process.exit(1);
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(athleteData, ATHLETE_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of ATHLETE_PLAIN_FIELD_ORDER) {
-          const value = athleteData[key];
-          if (value !== undefined && value !== null) {
-            lines.push(`${ATHLETE_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        athleteData,
+        ATHLETE_COLUMNS,
+        ATHLETE_PLAIN_FIELD_ORDER,
+        ATHLETE_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -256,23 +227,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, TRAINING_PLAN_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of TRAINING_PLAN_PLAIN_FIELD_ORDER) {
-          const value = data[key as keyof typeof data];
-          if (value !== undefined && value !== null) {
-            lines.push(`${TRAINING_PLAN_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        TRAINING_PLAN_COLUMNS,
+        TRAINING_PLAN_PLAIN_FIELD_ORDER,
+        TRAINING_PLAN_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -305,23 +266,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, TRAINING_PLAN_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of TRAINING_PLAN_PLAIN_FIELD_ORDER) {
-          const value = data[key as keyof typeof data];
-          if (value !== undefined && value !== null) {
-            lines.push(`${TRAINING_PLAN_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        TRAINING_PLAN_COLUMNS,
+        TRAINING_PLAN_PLAIN_FIELD_ORDER,
+        TRAINING_PLAN_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -342,26 +293,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, SUMMARY_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        for (const row of data) {
-          const lines: string[] = [];
-          for (const key of SUMMARY_PLAIN_FIELD_ORDER) {
-            const value = (row as Record<string, unknown>)[key];
-            if (value !== undefined && value !== null) {
-              lines.push(`${SUMMARY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-            }
-          }
-          process.stdout.write(`${lines.join('\n')}\n`);
-          process.stdout.write('---\n');
-        }
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        SUMMARY_COLUMNS,
+        SUMMARY_PLAIN_FIELD_ORDER,
+        SUMMARY_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 }

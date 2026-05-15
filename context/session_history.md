@@ -1,6 +1,6 @@
 # Session History - icu-cli
 
-**Date:** 2026-05-14
+**Date:** 2026-05-15
 **Repository:** c:\git\icu-cli
 
 ---
@@ -262,6 +262,78 @@ Created integration tests for athletes command group following patterns from who
 
 ---
 
+### 12. Phase 4 Task 3: activities.ts Implementation
+
+Implemented `src/commands/activities.ts` with all 11 subcommands following patterns from athletes.ts:
+
+**Subcommands implemented:**
+- `activities list --oldest --newest --limit --fields` — GET /api/v1/athlete/{id}/activities
+- `activities get <activityId> --intervals` — GET /api/v1/activity/{id}
+- `activities create --file` — POST /api/v1/athlete/{id}/activities/manual
+- `activities upload <filepath> --name --description` — POST /api/v1/athlete/{id}/activities (multipart/form-data)
+- `activities update <activityId> --file` — PUT /api/v1/activity/{id}
+- `activities delete <activityId>` — DELETE /api/v1/activity/{id}
+- `activities search --query --limit` — GET /api/v1/athlete/{id}/activities/search
+- `activities streams <activityId> --types` — GET /api/v1/activity/{id}/streams (JSON output)
+- `activities intervals <activityId>` — GET /api/v1/activity/{id}/intervals (JSON output)
+- `activities download-fit <activityId> --output` — GET /api/v1/activity/{id}/fit-file (binary, arrayBuffer)
+- `activities download-gpx <activityId> --output` — GET /api/v1/activity/{id}/gpx-file (binary, arrayBuffer)
+
+**Key fixes applied:**
+1. **handleError signature**: Changed from `handleError(error)` to `handleError(status: number, error?: unknown)` and now uses `response?.status` instead of `error.status` — fixes 401/403/404 handling for openapi-fetch
+2. **Error output**: Changed `Error: ${error}` to `Error: ${typeof error === 'string' ? error : JSON.stringify(error)}` — fixes `[object Object]` printing
+3. **formatJson import**: Added missing `formatJson` import for streams/intervals commands
+4. **Code duplication**: Extracted `printOutput` helper to `src/output-helpers.ts` — reduces ~300 lines of duplication across activities.ts, athletes.ts, whoami.ts
+5. **Helper tests**: Added `tests/unit/output-helpers.test.ts` with 11 tests
+
+**Files written:**
+- `src/output-helpers.ts` — printOutput helper function
+- `tests/unit/output-helpers.test.ts` — 11 unit tests for printOutput
+
+**Files modified:**
+- `src/commands/activities.ts` — full implementation with 11 subcommands
+- `src/commands/athletes.ts` — refactored to use printOutput helper
+- `src/commands/whoami.ts` — refactored to use printOutput helper
+- `src/commands/auth-cmd.ts` — fixed error handling (uses response.status instead of error.status)
+- `tests/integration/auth.test.ts` — fixed 1 test (added response to mock)
+- `tests/integration/whoami.test.ts` — fixed 3 tests (added response to mocks)
+
+---
+
+### 13. Phase 4 Task 4: activities.ts Integration Tests
+
+Created comprehensive integration tests for activities command group following patterns from athletes.test.ts.
+
+**Test structure:**
+- Mock `client.GET`, `client.POST`, `client.PUT`, `client.DELETE` from src/client.js
+- Mock fs/promises (readFile, writeFile, mkdir) and env-paths
+- Reset config cache with `_resetConfigCache()` in beforeEach
+
+**Tests per subcommand (22 total):**
+- list: 3 tests (no athlete ID, 401 auth error, 403 access denied)
+- get: 1 test (404 error)
+- create: 1 test (--file missing)
+- update: 1 test (--file missing)
+- delete: 2 tests (success, 404 error)
+- search: 2 tests (--query missing, 401 auth error)
+- streams: 3 tests (success, 500 error, 403 access denied)
+- intervals: 3 tests (success, 404 error, 401 auth error)
+- download-fit: 3 tests (success, 404 error, 401 auth error)
+- download-gpx: 3 tests (success, 404 error, 401 auth error)
+
+**Total: 151 tests** — all pass
+
+**Key test that caught the bug:**
+- `streams > exits with 0 and outputs streams as JSON` — validates formatJson import works
+- `intervals > exits with 0 and outputs intervals as JSON` — validates formatJson import works
+
+**Bug caught:** Missing `formatJson` import would have caused runtime error when running `icu activities streams` or `icu activities intervals` — now tested.
+
+**Files written:**
+- `tests/integration/activities.test.ts` — 22 integration tests
+
+---
+
 ## Last action
-Phase 4 complete — athletes.ts implemented with 6 subcommands (get, update, profile, training-plan get/update, summary), 34 integration tests added (118 total tests), all lint/format issues fixed.
-2026-05-14_18:30
+Phase 4 complete — activities.ts implemented with 11 subcommands, output-helpers.ts created for code reuse, 22 integration tests added for activities (151 total tests), comprehensive error handling fixes applied.
+2026-05-15_13:00

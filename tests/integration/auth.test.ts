@@ -122,7 +122,11 @@ describe('auth status', () => {
   it('exits with 1 and prints error on 401', async () => {
     const mockGet = vi.mocked(client.GET);
     mockGet.mockImplementation(() =>
-      Promise.resolve({ data: undefined, error: { status: 401, message: 'Unauthorized' } }),
+      Promise.resolve({
+        data: undefined,
+        error: { status: 401, message: 'Unauthorized' },
+        response: { status: 401 } as Response,
+      }),
     );
 
     const mockExit = vi

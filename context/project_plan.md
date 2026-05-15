@@ -65,7 +65,8 @@ Phase 4
 -->
 - [x] Implement `src/commands/athletes.ts` (`get`, `update`, `profile`, `training-plan get`, `training-plan update`, `summary`). See [icu athletes](../SPEC.md#icu-athletes).
 - [x] Write integration tests for athletes command group. 34 tests covering get, update, profile, training-plan get/update, summary subcommands. 118 tests total (83 existing + 34 new + 1 new test added = 118).
-- [ ] Implement `src/commands/activities.ts` (`list`, `get`, `create`, `upload`, `update`, `delete`, `search`, `streams`, `intervals`, `download-fit`, `download-gpx`). See [icu activities](../SPEC.md#icu-activities).
+- [x] Implement `src/commands/activities.ts` (`list`, `get`, `create`, `upload`, `update`, `delete`, `search`, `streams`, `intervals`, `download-fit`, `download-gpx`). See [icu activities](../SPEC.md#icu-activities).
+- [x] Write integration tests for activities command group. 22 tests covering list, get, create, update, delete, search, streams, intervals, download-fit, download-gpx subcommands. 151 tests total.
 - [ ] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events).
 - [ ] Implement `src/commands/wellness.ts` (`list`, `get`, `update`, `upload`). See [icu wellness](../SPEC.md#icu-wellness).
 - [ ] Write integration tests for each command group (mocked HTTP responses)

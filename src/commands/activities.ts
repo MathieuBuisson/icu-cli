@@ -1,9 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import type { Command } from 'commander';
 import client from '../client.js';
-import { readConfig, resolveAthleteId } from '../config.js';
+import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
-import { type ColumnDef, formatJson, formatTable, resolveFormat } from '../output.js';
+import { type ColumnDef, formatJson } from '../output.js';
+import { printOutput } from '../output-helpers.js';
 
 const ACTIVITY_COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },
@@ -86,7 +87,7 @@ function handleError(status: number, error?: unknown): never {
   } else if (status === 404) {
     process.stderr.write('Resource not found.\n');
   } else if (error) {
-    process.stderr.write(`Error: ${error}\n`);
+    process.stderr.write(`Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`);
   } else {
     process.stderr.write(`Error: HTTP ${status}\n`);
   }
@@ -142,26 +143,13 @@ export function register(program: Command): void {
           return;
         }
 
-        const config = await readConfig();
-        const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-        if (format === 'table') {
-          process.stdout.write(`${formatTable(data, ACTIVITY_COLUMNS)}\n`);
-        } else if (format === 'plain') {
-          for (const row of data) {
-            const lines: string[] = [];
-            for (const key of ACTIVITY_PLAIN_FIELD_ORDER) {
-              const value = (row as Record<string, unknown>)[key];
-              if (value !== undefined && value !== null) {
-                lines.push(`${ACTIVITY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-              }
-            }
-            process.stdout.write(`${lines.join('\n')}\n`);
-            process.stdout.write('---\n');
-          }
-        } else {
-          process.stdout.write(`${formatJson(data)}\n`);
-        }
+        await printOutput(
+          program,
+          data,
+          ACTIVITY_COLUMNS,
+          ACTIVITY_PLAIN_FIELD_ORDER,
+          ACTIVITY_PLAIN_FIELD_HEADERS,
+        );
         process.exit(0);
       },
     );
@@ -181,42 +169,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
+      const columns = isHidden(data) ? HIDDEN_COLUMNS : ACTIVITY_COLUMNS;
+      const plainOrder = isHidden(data) ? HIDDEN_PLAIN_FIELD_ORDER : ACTIVITY_PLAIN_FIELD_ORDER;
+      const plainHeaders = isHidden(data)
+        ? HIDDEN_PLAIN_FIELD_HEADERS
+        : ACTIVITY_PLAIN_FIELD_HEADERS;
 
-      if (isHidden(data)) {
-        if (format === 'json') {
-          process.stdout.write(`${formatJson(data)}\n`);
-        } else {
-          if (format === 'table') {
-            process.stdout.write(`${formatTable(data, HIDDEN_COLUMNS)}\n`);
-          } else {
-            const lines: string[] = [];
-            for (const key of HIDDEN_PLAIN_FIELD_ORDER) {
-              const value = (data as Record<string, unknown>)[key];
-              if (value !== undefined && value !== null) {
-                lines.push(`${HIDDEN_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-              }
-            }
-            process.stdout.write(`${lines.join('\n')}\n`);
-          }
-        }
-      } else {
-        if (format === 'table') {
-          process.stdout.write(`${formatTable(data, ACTIVITY_COLUMNS)}\n`);
-        } else if (format === 'plain') {
-          const lines: string[] = [];
-          for (const key of ACTIVITY_PLAIN_FIELD_ORDER) {
-            const value = (data as Record<string, unknown>)[key];
-            if (value !== undefined && value !== null) {
-              lines.push(`${ACTIVITY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-            }
-          }
-          process.stdout.write(`${lines.join('\n')}\n`);
-        } else {
-          process.stdout.write(`${formatJson(data)}\n`);
-        }
-      }
+      await printOutput(program, data, columns, plainOrder, plainHeaders);
       process.exit(0);
     });
 
@@ -252,23 +211,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, ACTIVITY_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of ACTIVITY_PLAIN_FIELD_ORDER) {
-          const value = (data as Record<string, unknown>)[key];
-          if (value !== undefined && value !== null) {
-            lines.push(`${ACTIVITY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        ACTIVITY_COLUMNS,
+        ACTIVITY_PLAIN_FIELD_ORDER,
+        ACTIVITY_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -296,23 +245,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, ACTIVITY_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        const lines: string[] = [];
-        for (const key of ACTIVITY_PLAIN_FIELD_ORDER) {
-          const value = (data as Record<string, unknown>)[key];
-          if (value !== undefined && value !== null) {
-            lines.push(`${ACTIVITY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-          }
-        }
-        process.stdout.write(`${lines.join('\n')}\n`);
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        ACTIVITY_COLUMNS,
+        ACTIVITY_PLAIN_FIELD_ORDER,
+        ACTIVITY_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
@@ -343,42 +282,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
+      const columns = isHidden(data) ? HIDDEN_COLUMNS : ACTIVITY_COLUMNS;
+      const plainOrder = isHidden(data) ? HIDDEN_PLAIN_FIELD_ORDER : ACTIVITY_PLAIN_FIELD_ORDER;
+      const plainHeaders = isHidden(data)
+        ? HIDDEN_PLAIN_FIELD_HEADERS
+        : ACTIVITY_PLAIN_FIELD_HEADERS;
 
-      if (isHidden(data)) {
-        if (format === 'json') {
-          process.stdout.write(`${formatJson(data)}\n`);
-        } else {
-          if (format === 'table') {
-            process.stdout.write(`${formatTable(data, HIDDEN_COLUMNS)}\n`);
-          } else {
-            const lines: string[] = [];
-            for (const key of HIDDEN_PLAIN_FIELD_ORDER) {
-              const value = (data as Record<string, unknown>)[key];
-              if (value !== undefined && value !== null) {
-                lines.push(`${HIDDEN_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-              }
-            }
-            process.stdout.write(`${lines.join('\n')}\n`);
-          }
-        }
-      } else {
-        if (format === 'table') {
-          process.stdout.write(`${formatTable(data, ACTIVITY_COLUMNS)}\n`);
-        } else if (format === 'plain') {
-          const lines: string[] = [];
-          for (const key of ACTIVITY_PLAIN_FIELD_ORDER) {
-            const value = (data as Record<string, unknown>)[key];
-            if (value !== undefined && value !== null) {
-              lines.push(`${ACTIVITY_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-            }
-          }
-          process.stdout.write(`${lines.join('\n')}\n`);
-        } else {
-          process.stdout.write(`${formatJson(data)}\n`);
-        }
-      }
+      await printOutput(program, data, columns, plainOrder, plainHeaders);
       process.exit(0);
     });
 
@@ -420,26 +330,13 @@ export function register(program: Command): void {
         return;
       }
 
-      const config = await readConfig();
-      const format = resolveFormat(program.opts().format, config.defaultFormat);
-
-      if (format === 'table') {
-        process.stdout.write(`${formatTable(data, SEARCH_COLUMNS)}\n`);
-      } else if (format === 'plain') {
-        for (const row of data) {
-          const lines: string[] = [];
-          for (const key of SEARCH_PLAIN_FIELD_ORDER) {
-            const value = (row as Record<string, unknown>)[key];
-            if (value !== undefined && value !== null) {
-              lines.push(`${SEARCH_PLAIN_FIELD_HEADERS[key]}: ${value}`);
-            }
-          }
-          process.stdout.write(`${lines.join('\n')}\n`);
-          process.stdout.write('---\n');
-        }
-      } else {
-        process.stdout.write(`${formatJson(data)}\n`);
-      }
+      await printOutput(
+        program,
+        data,
+        SEARCH_COLUMNS,
+        SEARCH_PLAIN_FIELD_ORDER,
+        SEARCH_PLAIN_FIELD_HEADERS,
+      );
       process.exit(0);
     });
 
