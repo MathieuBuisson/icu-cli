@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type SpyInstance, vi } from 'vitest';
 
 vi.mock('../../src/client.js', () => ({
   default: { GET: vi.fn(), POST: vi.fn(), PUT: vi.fn(), DELETE: vi.fn() },
@@ -48,12 +48,19 @@ const INTERVAL_DATA = [
 ];
 
 describe('activities', () => {
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
-  let mockStdoutWrite: ReturnType<typeof vi.spyOn>;
+  let mockExit: SpyInstance<typeof process.exit>;
+  let mockStderrWrite: SpyInstance<typeof process.stderr.write>;
+  let mockStdoutWrite: SpyInstance<typeof process.stdout.write>;
+  let originalIsTTY: boolean | undefined;
+  let originalArgv: string[];
+
+  const getStderr = () => mockStderrWrite.mock.calls.map((c) => String(c[0])).join('');
+  const _getStdout = () => mockStdoutWrite.mock.calls.map((c) => String(c[0])).join('');
 
   beforeEach(() => {
     _resetConfigCache();
+    originalIsTTY = process.stdout.isTTY;
+    originalArgv = [...process.argv];
     mockExit = vi.spyOn(process, 'exit').mockImplementation((() => {}) as typeof process.exit);
     mockStderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     mockStdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
@@ -61,9 +68,11 @@ describe('activities', () => {
   });
 
   afterEach(() => {
+    process.argv = originalArgv;
     mockExit.mockRestore();
     mockStderrWrite.mockRestore();
     mockStdoutWrite.mockRestore();
+    Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
     vi.restoreAllMocks();
   });
 
@@ -85,8 +94,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'list', '--oldest', '2024-01-01'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
 
     it('exits with 1 and prints access denied on 403', async () => {
@@ -100,8 +108,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'list', '--oldest', '2024-01-01'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Access denied');
+      expect(getStderr()).toContain('Access denied');
     });
   });
 
@@ -117,8 +124,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'get', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
   });
 
@@ -127,8 +133,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'create'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('--file is required');
+      expect(getStderr()).toContain('--file is required');
     });
   });
 
@@ -137,8 +142,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'update', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('--file is required');
+      expect(getStderr()).toContain('--file is required');
     });
   });
 
@@ -169,8 +173,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'delete', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
   });
 
@@ -179,8 +182,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'search'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('--query');
+      expect(getStderr()).toContain('--query');
     });
 
     it('exits with 1 and prints auth error on 401', async () => {
@@ -194,8 +196,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'search', '--query', 'morning'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 
@@ -227,8 +228,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'streams', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Error');
+      expect(getStderr()).toContain('Error');
     });
 
     it('exits with 1 and prints access denied on 403', async () => {
@@ -242,8 +242,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'streams', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Access denied');
+      expect(getStderr()).toContain('Access denied');
     });
   });
 
@@ -275,8 +274,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'intervals', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 and prints auth error on 401', async () => {
@@ -290,8 +288,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'intervals', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 
@@ -310,8 +307,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'upload', 'test.fit'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 
@@ -341,8 +337,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'download-fit', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 and prints auth error on 401', async () => {
@@ -356,8 +351,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'download-fit', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 
@@ -387,8 +381,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'download-gpx', 'invalid'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 and prints auth error on 401', async () => {
@@ -402,8 +395,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'download-gpx', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 });

@@ -278,8 +278,8 @@ Created comprehensive integration tests for activities command group following p
 ---
 
 ## Last action
-Phase 4 — events.ts implemented with 6 subcommands (list, get, create, update, delete, download), strict integer validation (Number() instead of parseInt()), output path validation (parent dir exists, bare filename → current dir), CSV format fix ('' for JSON, '.csv' for CSV), activities.ts validation fixes (limit, output path), 152 tests passing.
-2026-05-15_14:00
+Phase 4 — Events integration tests complete (34 tests), test infrastructure improved across all test files (global state cleanup, helper functions, SpyInstance types). 186 tests passing, lint clean.
+2026-05-15_15:00
 
 ---
 
@@ -302,3 +302,26 @@ All tests passing (152), lint clean, build successful.
 - `src/commands/activities.ts` — Validation fixes
 - `src/generated/api.d.ts` — API type definitions for endpoint paths
 - `tests/integration/activities.test.ts` — Test fixes
+
+---
+
+### 10. Phase 4 Task 11: Events Integration Tests & Test Infrastructure Improvements
+
+Created `tests/integration/events.test.ts` with 34 tests covering all 6 subcommands (list, get, create, update, delete, download). Additionally, improved test infrastructure across all integration test files:
+
+- **Global state pollution fixes**: Added proper capture/restore for `process.stdout.isTTY` and `process.argv` in beforeEach/afterEach to prevent cross-test contamination
+- **Duplicated output collection**: Extracted helper functions `getStderr()` and `getStdout()` to reduce boilerplate across tests
+- **Mock type definitions**: Changed from `ReturnType<typeof vi.spyOn>` to `SpyInstance<typeof process.exit>` for stricter typing
+
+Files modified:
+- `tests/integration/events.test.ts` — 34 new tests + helper functions
+- `tests/integration/activities.test.ts` — Helper functions + global state fixes
+- `tests/integration/whoami.test.ts` — Helper functions + global state fixes
+- `tests/integration/athletes.test.ts` — Helper functions + global state fixes
+- `tests/integration/auth.test.ts` — Global state fixes
+- `tests/unit/cli.test.ts` — SpyInstance type fix
+
+All 186 tests passing, lint clean.
+
+**Files written:**
+- `tests/integration/events.test.ts` — 34 integration tests

@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type SpyInstance, vi } from 'vitest';
 
 vi.mock('../../src/client.js', () => ({
   default: { GET: vi.fn() },
@@ -36,16 +36,21 @@ const ATHLETE_DATA = {
 
 describe('whoami', () => {
   let tempDir: string;
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
-  let mockStdoutWrite: ReturnType<typeof vi.spyOn>;
+  let mockExit: SpyInstance<typeof process.exit>;
+  let mockStderrWrite: SpyInstance<typeof process.stderr.write>;
+  let mockStdoutWrite: SpyInstance<typeof process.stdout.write>;
   let mockReadFile: ReturnType<typeof vi.fn>;
   let mockWriteFile: ReturnType<typeof vi.fn>;
   let mockMkdir: ReturnType<typeof vi.fn>;
   let originalIsTTY: boolean | undefined;
+  let originalArgv: string[];
+
+  const getStderr = () => mockStderrWrite?.mock.calls.map((c) => String(c[0])).join('') ?? '';
+  const _getStdout = () => mockStdoutWrite?.mock.calls.map((c) => String(c[0])).join('') ?? '';
 
   beforeEach(async () => {
     originalIsTTY = process.stdout.isTTY;
+    originalArgv = [...process.argv];
     _resetConfigCache();
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-whoami-test-'));
     vi.mocked(envPaths).mockReturnValue({ config: tempDir });
@@ -64,6 +69,7 @@ describe('whoami', () => {
   });
 
   afterEach(async () => {
+    process.argv = originalArgv;
     if (originalIsTTY === undefined) {
       Reflect.deleteProperty(process.stdout, 'isTTY');
     } else {
@@ -196,8 +202,7 @@ describe('whoami', () => {
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
 
     it('exits with 1 and prints error on 403', async () => {
@@ -216,8 +221,7 @@ describe('whoami', () => {
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Access denied');
+      expect(getStderr()).toContain('Access denied');
     });
 
     it('exits with 1 and prints error on 404', async () => {
@@ -236,8 +240,7 @@ describe('whoami', () => {
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 on network error', async () => {
@@ -252,8 +255,7 @@ describe('whoami', () => {
       process.argv = ['node', 'icu', 'whoami'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('ECONNREFUSED');
+      expect(getStderr()).toContain('ECONNREFUSED');
     });
   });
 });

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type SpyInstance, vi } from 'vitest';
 import { buildProgram } from '../../src/cli.js';
 
 describe('buildProgram', () => {
@@ -31,8 +31,8 @@ describe('buildProgram', () => {
 
 describe('run', () => {
   let originalArgv: string[];
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
+  let mockExit: SpyInstance<typeof process.exit>;
+  let mockStderrWrite: SpyInstance<typeof process.stderr.write>;
 
   beforeEach(() => {
     originalArgv = process.argv;

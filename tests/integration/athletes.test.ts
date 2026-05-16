@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, type SpyInstance, vi } from 'vitest';
 
 vi.mock('../../src/client.js', () => ({
   default: { GET: vi.fn(), PUT: vi.fn() },
@@ -80,9 +80,12 @@ describe('athletes', () => {
   let tempDir: string;
   let originalIsTTY: boolean | undefined;
   let originalArgv: string[];
-  let mockExit: ReturnType<typeof vi.spyOn>;
-  let mockStdoutWrite: ReturnType<typeof vi.spyOn>;
-  let mockStderrWrite: ReturnType<typeof vi.spyOn>;
+  let mockExit: SpyInstance<typeof process.exit>;
+  let mockStdoutWrite: SpyInstance<typeof process.stdout.write>;
+  let mockStderrWrite: SpyInstance<typeof process.stderr.write>;
+
+  const getStderr = () => mockStderrWrite.mock.calls.map((c) => String(c[0])).join('');
+  const _getStdout = () => mockStdoutWrite.mock.calls.map((c) => String(c[0])).join('');
 
   beforeEach(async () => {
     originalArgv = [...process.argv];
@@ -170,8 +173,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
 
     it('exits with 1 on 403 error', async () => {
@@ -184,8 +186,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Access denied');
+      expect(getStderr()).toContain('Access denied');
     });
 
     it('exits with 1 on 404 error', async () => {
@@ -198,8 +199,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 on network error', async () => {
@@ -208,8 +208,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('ECONNREFUSED');
+      expect(getStderr()).toContain('ECONNREFUSED');
     });
 
     it('exits with 1 when no athlete ID available', async () => {
@@ -222,8 +221,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'get'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('athlete ID is required');
+      expect(getStderr()).toContain('athlete ID is required');
     });
 
     it('positional argument overrides config', async () => {
@@ -267,15 +265,13 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'missing.json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('ENOENT');
+      expect(getStderr()).toContain('ENOENT');
     });
     it('exits with 1 when --file is missing', async () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('--file is required');
+      expect(getStderr()).toContain('--file is required');
     });
 
     it('exits with 1 on invalid JSON input', async () => {
@@ -285,8 +281,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'invalid.json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Invalid JSON');
+      expect(getStderr()).toContain('Invalid JSON');
     });
 
     it('exits with 1 on 401 error', async () => {
@@ -302,8 +297,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123', '--file', 'data.json'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Authentication failed');
+      expect(getStderr()).toContain('Authentication failed');
     });
   });
 
@@ -350,8 +344,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'profile', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 when no athlete ID available', async () => {
@@ -364,8 +357,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'profile'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('athlete ID is required');
+      expect(getStderr()).toContain('athlete ID is required');
     });
   });
 
@@ -432,8 +424,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 when no athlete ID available', async () => {
@@ -446,8 +437,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'get'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('athlete ID is required');
+      expect(getStderr()).toContain('athlete ID is required');
     });
   });
 
@@ -478,8 +468,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('--file is required');
+      expect(getStderr()).toContain('--file is required');
     });
 
     it('exits with 1 on invalid JSON input', async () => {
@@ -498,8 +487,7 @@ describe('athletes', () => {
       ];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Invalid JSON');
+      expect(getStderr()).toContain('Invalid JSON');
     });
 
     it('exits with 1 on 403 error', async () => {
@@ -524,8 +512,7 @@ describe('athletes', () => {
       ];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Access denied');
+      expect(getStderr()).toContain('Access denied');
     });
   });
 
@@ -596,8 +583,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'summary', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('Resource not found');
+      expect(getStderr()).toContain('Resource not found');
     });
 
     it('exits with 1 when no athlete ID available', async () => {
@@ -610,8 +596,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'summary'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
-      expect(stderr).toContain('athlete ID is required');
+      expect(getStderr()).toContain('athlete ID is required');
     });
   });
 });

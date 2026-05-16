@@ -68,7 +68,7 @@ Phase 4
 - [x] Implement `src/commands/activities.ts` (`list`, `get`, `create`, `upload`, `update`, `delete`, `search`, `streams`, `intervals`, `download-fit`, `download-gpx`). See [icu activities](../SPEC.md#icu-activities).
 - [x] Write integration tests for activities command group. 22 tests covering list, get, create, update, delete, search, streams, intervals, download-fit, download-gpx subcommands. 151 tests total.
 - [x] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events). Strict validation (Number() vs parseInt), output path validation, CSV format fix, static import consistency. 152 tests passing.
-- [ ] Write integration tests for events command group, covering `list`, `get`, `create`, `update`, `delete`, `download` subcommands.
+- [x] Write integration tests for events command group. 34 tests covering list, get, create, update, delete, download subcommands. Test infrastructure improved across all test files (global state cleanup, helper functions, SpyInstance types). 186 tests total.
 - [ ] Implement `src/commands/wellness.ts` (`list`, `get`, `update`, `upload`). See [icu wellness](../SPEC.md#icu-wellness).
 - [ ] Write integration tests for wellness command group, covering `list`, `get`, `update`, `upload` subcommands.
 - **Status:** in_progress

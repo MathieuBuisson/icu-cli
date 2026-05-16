@@ -37,9 +37,11 @@ const ATHLETE_DATA = {
 describe('auth status', () => {
   let tempDir: string;
   let originalIsTTY: boolean | undefined;
+  let originalArgv: string[];
 
   beforeEach(async () => {
     originalIsTTY = process.stdout.isTTY;
+    originalArgv = [...process.argv];
     _resetConfigCache();
     tempDir = await mkdtemp(path.join(os.tmpdir(), 'icu-auth-test-'));
     vi.mocked(envPaths).mockReturnValue({ config: tempDir });
@@ -49,6 +51,7 @@ describe('auth status', () => {
   });
 
   afterEach(async () => {
+    process.argv = originalArgv;
     if (originalIsTTY === undefined) {
       Reflect.deleteProperty(process.stdout, 'isTTY');
     } else {
