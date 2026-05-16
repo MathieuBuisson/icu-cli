@@ -1,16 +1,15 @@
 import type { Command } from 'commander';
-import { readConfig } from './config.js';
-import { type ColumnDef, formatJson, formatTable, resolveFormat } from './output.js';
+import { readConfig } from '../config.js';
+import { type ColumnDef, formatJson, formatTable, resolveFormat } from '../output.js';
 
 export type PlainFieldOrder = readonly string[];
-export type PlainFieldHeaders = Record<string, string>;
 
-export async function printOutput(
+export async function printOutput<K extends string>(
   program: Command,
   data: Record<string, unknown> | Record<string, unknown>[],
   columns: ColumnDef[],
-  plainFieldOrder: PlainFieldOrder,
-  plainFieldHeaders: PlainFieldHeaders,
+  plainFieldOrder: readonly K[],
+  plainFieldHeaders: Record<K, string>,
 ): Promise<void> {
   const config = await readConfig();
   const format = resolveFormat(

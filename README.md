@@ -26,6 +26,7 @@ Query, schedule, and automate training data from the command line.
 | Single executable | [Bun](https://bun.sh) `build --compile` |
 | Testing | [vitest](https://vitest.dev) |
 | Lint + Format | [Biome](https://biomejs.dev) |
+| Validation | [Zod](https://zod.dev) |
 
 ## Installation
 
@@ -143,6 +144,8 @@ icu-cli/
 │   ├── client.ts                 # openapi-fetch client factory
 │   ├── output.ts                 # TTY-aware output formatting
 │   ├── input.ts                  # --file / stdin input reader
+│   ├── utils/
+│   │   └── validation.ts          # Zod runtime validation
 │   ├── commands/                 # One module per command group
 │   │   ├── whoami.ts
 │   │   ├── config-cmd.ts
@@ -169,6 +172,7 @@ icu-cli/
 ├── tsconfig.json
 ├── biome.json
 ├── SPEC.md                       # Technical specification
+├── AGENTS.md                     # AI agent onboarding
 └── README.md
 ```
 

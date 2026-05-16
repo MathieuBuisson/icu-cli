@@ -5,7 +5,8 @@ import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
 import { type ColumnDef, formatJson } from '../output.js';
-import { printOutput } from '../output-helpers.js';
+import { printOutput } from '../utils/output-helpers.js';
+import { validateActivity } from '../utils/validation.js';
 
 const ACTIVITY_COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },
@@ -222,6 +223,15 @@ export function register(program: Command): void {
         process.exit(1);
       }
 
+      const validationErrors = validateActivity(body as Record<string, unknown>);
+      if (validationErrors.length > 0) {
+        process.stderr.write('Error: Invalid activity data:\n');
+        for (const err of validationErrors) {
+          process.stderr.write(`  - ${err}\n`);
+        }
+        process.exit(1);
+      }
+
       const { data, error, response } = await client.POST(
         '/api/v1/athlete/{id}/activities/manual',
         {
@@ -293,6 +303,15 @@ export function register(program: Command): void {
         }
       } else {
         process.stderr.write('Error: --file is required\n');
+        process.exit(1);
+      }
+
+      const validationErrors = validateActivity(body as Record<string, unknown>);
+      if (validationErrors.length > 0) {
+        process.stderr.write('Error: Invalid activity data:\n');
+        for (const err of validationErrors) {
+          process.stderr.write(`  - ${err}\n`);
+        }
         process.exit(1);
       }
 

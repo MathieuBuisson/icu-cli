@@ -1,6 +1,6 @@
 # Session History - icu-cli
 
-**Date:** 2026-05-15
+**Date:** 2026-05-16
 **Repository:** c:\git\icu-cli
 
 ---
@@ -278,8 +278,44 @@ Created comprehensive integration tests for activities command group following p
 ---
 
 ## Last action
-Phase 4 — Events integration tests complete (34 tests), test infrastructure improved across all test files (global state cleanup, helper functions, SpyInstance types). 186 tests passing, lint clean.
-2026-05-15_15:00
+Added Zod validation, CSV parsing fixes, and type safety improvements. 253 tests passing, lint clean.
+2026-05-16_15:30
+
+---
+
+### 14. Zod Schema Validation & Date/CSV Bug Fixes
+
+Added runtime validation using Zod for Wellness, Event, Activity, and Athlete objects. Key changes:
+
+**`src/utils/validation.ts`**: Created Zod schemas for all 4 entities using OpenAPI types from api.d.ts. Added `validateWellness`, `validateEvent`, `validateActivity`, `validateAthlete` functions that return typed data or throw descriptive errors.
+
+**CSV parsing fix**: Replaced naive `split(',')` with `csv-parse` library to handle quoted values correctly (e.g., "Doe, John" as single field).
+
+**TOCTOU fix**: Removed `validateFilePath` function that could cause race conditions. Now catches `ENOENT` directly in `readJsonFile` and `readCsvFile`.
+
+**validateDate fix**: Changed from `new Date(string).toString() !== 'Invalid Date'` to proper calendar date validation. Now correctly rejects invalid dates like Feb 30.
+
+**validateDateNotFuture timezone fix**: Changed to use `setUTCHours(23, 59, 59, 999)` instead of local time to properly compare against end-of-day in the user's timezone.
+
+**printOutput type safety**: Changed from `Record<string, string>` to generic `<K extends string>` that ties `plainFieldOrder` and `plainFieldHeaders` together. Now catches mismatched keys at compile time instead of runtime.
+
+**Integration**: Added validation calls to wellness.ts, activities.ts, events.ts, athletes.ts commands.
+
+**Tests**: Added 67 unit tests in `tests/unit/validation.test.ts` covering all validation functions.
+
+**Files written:**
+- `src/utils/validation.ts` — Zod schemas and validation functions
+
+**Files modified:**
+- `src/commands/wellness.ts` — added validation
+- `src/commands/activities.ts` — added validation
+- `src/commands/events.ts` — added validation
+- `src/commands/athletes.ts` — added validation
+- `src/commands/whoami.ts` — updated imports
+- `src/output-helpers.ts` — deleted (functionality moved to validation/commands)
+
+**Files deleted:**
+- `src/output-helpers.ts` — merged functionality into validation.ts or command files
 
 ---
 

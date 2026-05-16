@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 import type { ColumnDef } from '../../src/output.js';
-import { printOutput } from '../../src/output-helpers.js';
+import { printOutput } from '../../src/utils/output-helpers.js';
 
 const COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },

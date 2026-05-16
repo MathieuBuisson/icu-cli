@@ -3,7 +3,8 @@ import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
 import type { ColumnDef } from '../output.js';
-import { printOutput } from '../output-helpers.js';
+import { printOutput } from '../utils/output-helpers.js';
+import { validateAthlete } from '../utils/validation.js';
 
 const ATHLETE_COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },
@@ -158,6 +159,15 @@ export function register(program: Command): void {
         }
       } else {
         process.stderr.write('Error: --file is required\n');
+        process.exit(1);
+      }
+
+      const validationErrors = validateAthlete(body as Record<string, unknown>);
+      if (validationErrors.length > 0) {
+        process.stderr.write('Error: Invalid athlete data:\n');
+        for (const err of validationErrors) {
+          process.stderr.write(`  - ${err}\n`);
+        }
         process.exit(1);
       }
 

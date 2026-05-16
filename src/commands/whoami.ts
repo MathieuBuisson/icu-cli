@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import client from '../client.js';
 import { readConfig, writeConfig } from '../config.js';
 import type { ColumnDef } from '../output.js';
-import { printOutput } from '../output-helpers.js';
+import { printOutput } from '../utils/output-helpers.js';
 
 const COLUMNS: ColumnDef[] = [
   { key: 'id', header: 'ID' },

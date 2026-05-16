@@ -7,7 +7,7 @@
 ## Architecture
 
 - **Entry point:** `src/index.ts` → `src/cli.ts` (Commander program setup)
-- **Core modules:** `config.ts` (XDG-compliant config via `env-paths`), `auth.ts` (API key Basic auth / OAuth bearer token), `client.ts` (`openapi-fetch` typed client factory), `output.ts` (TTY-aware formatting: json/table/plain), `input.ts` (file/stdin JSON reader)
+- **Core modules:** `config.ts` (XDG-compliant config via `env-paths`), `auth.ts` (API key Basic auth / OAuth bearer token), `client.ts` (`openapi-fetch` typed client factory), `output.ts` (TTY-aware formatting: json/table/plain), `input.ts` (file/stdin JSON reader), `utils/validation.ts` (Zod runtime validation)
 - **Commands:** `src/commands/*.ts` — one module per command group, each registers subcommands on the Commander program
 - **Generated types:** `src/generated/api.d.ts` — auto-generated from the pinned OpenAPI spec via `openapi-typescript`
 - **Authentication flow:** `ICU_ACCESS_TOKEN` (Bearer) takes precedence over `ICU_API_KEY` (Basic auth). If neither is set, exit with error.
@@ -26,6 +26,8 @@ icu-cli/
 │   ├── client.ts                 # openapi-fetch client factory
 │   ├── output.ts                 # TTY-aware output formatting
 │   ├── input.ts                  # --file / stdin input reader
+│   ├── utils/
+│   │   └── validation.ts          # Zod runtime validation
 │   ├── commands/                 # One module per command group
 │   │   ├── whoami.ts
 │   │   ├── config-cmd.ts
@@ -73,6 +75,7 @@ icu-cli/
 | Single executable | `bun build --compile` |
 | Testing | `vitest` |
 | Lint + Format | `biome` |
+| Validation | `zod` |
 
 ## Key conventions
 

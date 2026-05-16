@@ -178,7 +178,7 @@ options:
 | `list` | `GET /api/v1/athlete/{id}/wellness` | `--oldest`, `--newest`, `--fields` |
 | `get <date>` | `GET /api/v1/athlete/{id}/wellness/{date}` | |
 | `update <date>` | `PUT /api/v1/athlete/{id}/wellness/{date}` | `--file` |
-| `upload` | `POST /api/v1/athlete/{id}/wellness` | `<filepath>` (CSV) |
+| `upload` | `POST /api/v1/athlete/{id}/wellness` | `--file` (CSV) |
 
 #### `icu workouts`
 
