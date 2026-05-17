@@ -2,6 +2,7 @@ import type { Command } from 'commander';
 import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
 import type { ColumnDef } from '../output.js';
+import { handleHttpError } from '../utils/api-helpers.js';
 import { printOutput } from '../utils/output-helpers.js';
 import {
   readCsvFile,
@@ -41,21 +42,6 @@ const WELLNESS_PLAIN_FIELD_HEADERS: Record<string, string> = {
   restingHR: 'Resting HR',
   hrv: 'HRV',
 };
-
-function handleError(status: number, error?: unknown): never {
-  if (status === 401) {
-    process.stderr.write('Authentication failed. Check your credentials.\n');
-  } else if (status === 403) {
-    process.stderr.write('Access denied for this resource.\n');
-  } else if (status === 404) {
-    process.stderr.write('Resource not found.\n');
-  } else if (error) {
-    process.stderr.write(`Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`);
-  } else {
-    process.stderr.write(`Error: HTTP ${status}\n`);
-  }
-  process.exit(1);
-}
 
 async function resolveId(id: string | undefined): Promise<string> {
   const resolved = await resolveAthleteId(id);
@@ -99,7 +85,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -128,7 +114,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -145,15 +131,10 @@ export function register(program: Command): void {
   cmd
     .command('update <date>')
     .description('Update wellness record by date (ISO-8601 format, use --file to provide JSON)')
-    .option('--file <path>', 'JSON file with wellness data')
-    .action(async (date: string, options: { file?: string }) => {
+    .requiredOption('--file <path>', 'JSON file with wellness data')
+    .action(async (date: string, options: { file: string }) => {
       if (!validateDate(date)) {
         process.stderr.write('Error: date must be a valid ISO-8601 date (YYYY-MM-DD)\n');
-        process.exit(1);
-      }
-
-      if (!options.file) {
-        process.stderr.write('Error: --file is required\n');
         process.exit(1);
       }
 
@@ -167,7 +148,7 @@ export function register(program: Command): void {
         if (error.message.startsWith('File not found:')) {
           process.stderr.write(`Error: ${error.message}\n`);
         } else {
-          process.stderr.write('Error: --file must contain valid JSON\n');
+          process.stderr.write(`Invalid JSON in file: ${error.message}\n`);
         }
         process.exit(1);
       }
@@ -187,7 +168,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -204,14 +185,9 @@ export function register(program: Command): void {
   cmd
     .command('upload')
     .description('Upload wellness records from CSV file')
-    .option('--file <path>', 'CSV file with wellness data (or - for stdin)')
+    .requiredOption('--file <path>', 'CSV file with wellness data (or - for stdin)')
     .option('--ignoreMissingFields', 'Ignore missing fields in CSV', false)
-    .action(async (options: { file?: string; ignoreMissingFields?: boolean }) => {
-      if (!options.file) {
-        process.stderr.write('Error: --file is required\n');
-        process.exit(1);
-      }
-
+    .action(async (options: { file: string; ignoreMissingFields?: boolean }) => {
       const isStdin = options.file === '-';
 
       const athleteId = await resolveId(undefined);
@@ -241,7 +217,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 

@@ -5,6 +5,7 @@ import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
 import { type ColumnDef, formatJson } from '../output.js';
+import { handleHttpError } from '../utils/api-helpers.js';
 import { printOutput } from '../utils/output-helpers.js';
 import { validateActivity } from '../utils/validation.js';
 
@@ -81,21 +82,6 @@ const SEARCH_PLAIN_FIELD_HEADERS: Record<string, string> = {
   moving_time: 'Moving Time',
 };
 
-function handleError(status: number, error?: unknown): never {
-  if (status === 401) {
-    process.stderr.write('Authentication failed. Check your credentials.\n');
-  } else if (status === 403) {
-    process.stderr.write('Access denied for this resource.\n');
-  } else if (status === 404) {
-    process.stderr.write('Resource not found.\n');
-  } else if (error) {
-    process.stderr.write(`Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`);
-  } else {
-    process.stderr.write(`Error: HTTP ${status}\n`);
-  }
-  process.exit(1);
-}
-
 async function resolveId(id: string | undefined): Promise<string> {
   const resolved = await resolveAthleteId(id);
   if (!resolved) {
@@ -164,7 +150,7 @@ export function register(program: Command): void {
         });
 
         if (error) {
-          handleError(response?.status ?? 0, error);
+          handleHttpError(response?.status ?? 0, error);
           return;
         }
 
@@ -190,7 +176,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -207,19 +193,13 @@ export function register(program: Command): void {
   cmd
     .command('create')
     .description('Create a manual activity (use --file to provide JSON)')
-    .option('--file <path>', 'JSON file with activity data (or - for stdin)')
-    .action(async (options: { file?: string }) => {
+    .requiredOption('--file <path>', 'JSON file with activity data (or - for stdin)')
+    .action(async (options: { file: string }) => {
       const athleteId = await resolveId(undefined);
 
-      let body: unknown = null;
-      if (options.file) {
-        body = await readInput(options.file);
-        if (body === null) {
-          process.stderr.write('Error: --file requires JSON input\n');
-          process.exit(1);
-        }
-      } else {
-        process.stderr.write('Error: --file is required\n');
+      const body = await readInput(options.file);
+      if (body === null) {
+        process.stderr.write('Error: --file requires JSON input\n');
         process.exit(1);
       }
 
@@ -241,7 +221,7 @@ export function register(program: Command): void {
       );
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -275,7 +255,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -292,17 +272,11 @@ export function register(program: Command): void {
   cmd
     .command('update <activityId>')
     .description('Update an activity (use --file to provide JSON)')
-    .option('--file <path>', 'JSON file with activity data (or - for stdin)')
-    .action(async (activityId: string, options: { file?: string }) => {
-      let body: unknown = null;
-      if (options.file) {
-        body = await readInput(options.file);
-        if (body === null) {
-          process.stderr.write('Error: --file requires JSON input\n');
-          process.exit(1);
-        }
-      } else {
-        process.stderr.write('Error: --file is required\n');
+    .requiredOption('--file <path>', 'JSON file with activity data (or - for stdin)')
+    .action(async (activityId: string, options: { file: string }) => {
+      const body = await readInput(options.file);
+      if (body === null) {
+        process.stderr.write('Error: --file requires JSON input\n');
         process.exit(1);
       }
 
@@ -321,7 +295,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -344,7 +318,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -374,7 +348,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -402,7 +376,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -419,7 +393,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -448,7 +422,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -483,7 +457,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 

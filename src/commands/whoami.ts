@@ -50,7 +50,6 @@ export function register(program: Command): void {
           );
         }
         process.exit(1);
-        return;
       }
 
       if (options.save && data) {

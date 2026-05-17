@@ -69,10 +69,8 @@ describe('events', () => {
 
   afterEach(() => {
     process.argv = originalArgv;
-    mockExit.mockRestore();
-    mockStderrWrite.mockRestore();
-    mockStdoutWrite.mockRestore();
     Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
+    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 
@@ -218,7 +216,7 @@ describe('events', () => {
       process.argv = ['node', 'icu', 'events', 'create'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
 
     it('exits with 1 and prints auth error on 401', async () => {
@@ -277,7 +275,7 @@ describe('events', () => {
       process.argv = ['node', 'icu', 'events', 'update', '123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
 
     it('exits with 1 when eventId is invalid', async () => {

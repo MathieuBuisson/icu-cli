@@ -115,6 +115,7 @@ describe('athletes', () => {
     } else {
       Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
     }
+    vi.clearAllMocks();
     vi.restoreAllMocks();
     vi.unstubAllEnvs();
     await rm(tempDir, { recursive: true, force: true });
@@ -271,7 +272,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
 
     it('exits with 1 on invalid JSON input', async () => {
@@ -468,7 +469,7 @@ describe('athletes', () => {
       process.argv = ['node', 'icu', 'athletes', 'training-plan', 'update', 'A123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
 
     it('exits with 1 on invalid JSON input', async () => {

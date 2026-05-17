@@ -57,6 +57,7 @@ describe('auth status', () => {
     } else {
       Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
     }
+    vi.clearAllMocks();
     vi.restoreAllMocks();
     await rm(tempDir, { recursive: true, force: true });
   });

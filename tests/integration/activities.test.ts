@@ -69,10 +69,8 @@ describe('activities', () => {
 
   afterEach(() => {
     process.argv = originalArgv;
-    mockExit.mockRestore();
-    mockStderrWrite.mockRestore();
-    mockStdoutWrite.mockRestore();
     Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
+    vi.clearAllMocks();
     vi.restoreAllMocks();
   });
 
@@ -133,7 +131,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'create'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
   });
 
@@ -142,7 +140,7 @@ describe('activities', () => {
       process.argv = ['node', 'icu', 'activities', 'update', 'act123'];
       await run();
       expect(mockExit).toHaveBeenCalledWith(1);
-      expect(getStderr()).toContain('--file is required');
+      expect(getStderr()).toContain("required option '--file <path>' not specified");
     });
   });
 

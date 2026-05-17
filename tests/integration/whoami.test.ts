@@ -75,10 +75,8 @@ describe('whoami', () => {
     } else {
       Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
     }
+    vi.clearAllMocks();
     vi.restoreAllMocks();
-    mockExit?.mockRestore();
-    mockStderrWrite?.mockRestore();
-    mockStdoutWrite?.mockRestore();
     await rm(tempDir, { recursive: true, force: true });
   });
 

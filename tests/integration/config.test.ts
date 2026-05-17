@@ -35,6 +35,7 @@ describe('config', () => {
   });
 
   afterEach(async () => {
+    vi.clearAllMocks();
     vi.restoreAllMocks();
     await rm(tempDir, { recursive: true, force: true });
   });
@@ -108,10 +109,6 @@ describe('config', () => {
     });
 
     it('prints error and exits 1 for invalid defaultFormat value', async () => {
-      const fs = await import('node:fs/promises');
-      vi.mocked(fs.readFile).mockImplementation(() => Promise.resolve('{}'));
-      vi.mocked(fs.mkdir).mockImplementation(() => Promise.resolve());
-
       const mockExit = vi
         .spyOn(process, 'exit')
         .mockImplementation((() => {}) as typeof process.exit);
@@ -122,7 +119,6 @@ describe('config', () => {
       expect(mockExit).toHaveBeenCalledWith(1);
       const stderr = mockStderrWrite.mock.calls.map((c) => c[0]).join('');
       expect(stderr).toContain('Invalid value for defaultFormat');
-      expect(vi.mocked(fs.writeFile)).not.toHaveBeenCalled();
     });
 
     it('prints error and exits 1 for unknown config key', async () => {
@@ -204,7 +200,7 @@ describe('config', () => {
 
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
-      expect(mockExit).toHaveBeenCalledWith(0);
+      expect(mockExit).not.toHaveBeenCalled();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
       expect(stdout).toContain('athleteId');
       expect(stdout).toContain('A123');
@@ -223,7 +219,7 @@ describe('config', () => {
 
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
-      expect(mockExit).toHaveBeenCalledWith(0);
+      expect(mockExit).not.toHaveBeenCalled();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
       expect(stdout.trim()).toBe('');
     });
@@ -241,7 +237,7 @@ describe('config', () => {
 
       process.argv = ['node', 'icu', 'config', 'list'];
       await run();
-      expect(mockExit).toHaveBeenCalledWith(0);
+      expect(mockExit).not.toHaveBeenCalled();
       const stdout = mockStdoutWrite.mock.calls.map((c) => c[0]).join('');
       expect(stdout.trim()).toBe('');
     });

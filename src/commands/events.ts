@@ -5,6 +5,7 @@ import client from '../client.js';
 import { resolveAthleteId } from '../config.js';
 import { readInput } from '../input.js';
 import type { ColumnDef } from '../output.js';
+import { handleHttpError } from '../utils/api-helpers.js';
 import { printOutput } from '../utils/output-helpers.js';
 import { validateEvent } from '../utils/validation.js';
 
@@ -55,21 +56,6 @@ const EVENT_CATEGORIES = [
 ] as const;
 
 const ALLOWED_EXTENSIONS = ['.zwo', '.mrc', '.erg', '.fit'] as const;
-
-function handleError(status: number, error?: unknown): never {
-  if (status === 401) {
-    process.stderr.write('Authentication failed. Check your credentials.\n');
-  } else if (status === 403) {
-    process.stderr.write('Access denied for this resource.\n');
-  } else if (status === 404) {
-    process.stderr.write('Resource not found.\n');
-  } else if (error) {
-    process.stderr.write(`Error: ${typeof error === 'string' ? error : JSON.stringify(error)}\n`);
-  } else {
-    process.stderr.write(`Error: HTTP ${status}\n`);
-  }
-  process.exit(1);
-}
 
 async function resolveId(id: string | undefined): Promise<string> {
   const resolved = await resolveAthleteId(id);
@@ -194,7 +180,7 @@ export function register(program: Command): void {
         });
 
         if (error) {
-          handleError(response?.status ?? 0, error);
+          handleHttpError(response?.status ?? 0, error);
           return;
         }
 
@@ -229,7 +215,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -246,20 +232,14 @@ export function register(program: Command): void {
   cmd
     .command('create')
     .description('Create an event (use --file to provide JSON)')
-    .option('--file <path>', 'JSON file with event data (or - for stdin)')
+    .requiredOption('--file <path>', 'JSON file with event data (or - for stdin)')
     .option('--force', 'Update event with matching uid instead of creating new')
-    .action(async (options: { file?: string; force?: boolean }) => {
+    .action(async (options: { file: string; force?: boolean }) => {
       const athleteId = await resolveId(undefined);
 
-      let body: unknown = null;
-      if (options.file) {
-        body = await readInput(options.file);
-        if (body === null) {
-          process.stderr.write('Error: --file requires JSON input\n');
-          process.exit(1);
-        }
-      } else {
-        process.stderr.write('Error: --file is required\n');
+      const body = await readInput(options.file);
+      if (body === null) {
+        process.stderr.write('Error: --file requires JSON input\n');
         process.exit(1);
       }
 
@@ -279,7 +259,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -296,8 +276,8 @@ export function register(program: Command): void {
   cmd
     .command('update <eventId>')
     .description('Update an event (use --file to provide JSON)')
-    .option('--file <path>', 'JSON file with event data (or - for stdin)')
-    .action(async (eventId: string, options: { file?: string }) => {
+    .requiredOption('--file <path>', 'JSON file with event data (or - for stdin)')
+    .action(async (eventId: string, options: { file: string }) => {
       if (!validateEventId(eventId)) {
         process.stderr.write('Error: eventId must be a valid integer\n');
         process.exit(1);
@@ -305,15 +285,9 @@ export function register(program: Command): void {
 
       const athleteId = await resolveId(undefined);
 
-      let body: unknown = null;
-      if (options.file) {
-        body = await readInput(options.file);
-        if (body === null) {
-          process.stderr.write('Error: --file requires JSON input\n');
-          process.exit(1);
-        }
-      } else {
-        process.stderr.write('Error: --file is required\n');
+      const body = await readInput(options.file);
+      if (body === null) {
+        process.stderr.write('Error: --file requires JSON input\n');
         process.exit(1);
       }
 
@@ -332,7 +306,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -363,7 +337,7 @@ export function register(program: Command): void {
       });
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 
@@ -410,7 +384,7 @@ export function register(program: Command): void {
       );
 
       if (error) {
-        handleError(response?.status ?? 0, error);
+        handleHttpError(response?.status ?? 0, error);
         return;
       }
 

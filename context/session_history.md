@@ -1,6 +1,6 @@
 # Session History - icu-cli
 
-**Date:** 2026-05-16
+**Date:** 2026-05-17
 **Repository:** c:\git\icu-cli
 
 ---
@@ -273,13 +273,56 @@ Created comprehensive integration tests for activities command group following p
 **Bug caught:** Missing `formatJson` import would have caused runtime error when running `icu activities streams` or `icu activities intervals` — now tested.
 
 **Files written:**
-- `tests/integration/activities.test.ts` — 22 integration tests
+- `tests/integration/events.test.ts` — 34 integration tests
+
+---
+
+### 15. Config Tests Fix, handleHttpError Extraction, and Test Infrastructure Cleanup
+
+**Config tests fix**: Fixed 3 failing config tests. The issue was that config list command used `process.exit(0)` but when mocked, execution continued past exit and printed JSON. Changed to use `return` instead for early exit in empty/no-config cases. Updated tests to assert `mockExit.not.toHaveBeenCalled()` instead of `toHaveBeenCalledWith(0)`.
+
+**Unreachable returns in config-cmd.ts**: Removed 7 unreachable return statements after `process.exit()` calls - dead code that was never reached.
+
+**handleHttpError extraction**: Extracted duplicated error handling from activities.ts, athletes.ts, events.ts, wellness.ts into shared `src/utils/api-helpers.ts`. Created `handleHttpError(status: number, error?: unknown): never` function that handles 401/403/404 specific messages, generic error, and HTTP status fallback. Updated all 4 command files to import and use this function.
+
+**Unreachable returns in whoami.ts and auth-cmd.ts**: Removed 3 unreachable return statements after `process.exit(1)`:
+- whoami.ts: 1 instance (line 53)
+- auth-cmd.ts: 2 instances (lines 31, 54)
+
+**api-helpers unit tests**: Created `tests/unit/api-helpers.test.ts` with 6 tests covering all handleHttpError scenarios: 401 (Authentication failed), 403 (Access denied), 404 (Resource not found), string error, object error, and generic HTTP error.
+
+**vi.clearAllMocks() addition**: Added `vi.clearAllMocks()` to afterEach in all 7 integration test files to ensure mock call histories and one-time resolved values are cleanly reset:
+- activities.test.ts, wellness.test.ts, events.test.ts, athletes.test.ts, whoami.test.ts, auth.test.ts, config.test.ts
+
+**Redundant mockRestore removal**: Removed explicit `.mockRestore()` calls that were redundant since `vi.restoreAllMocks()` already handles spy restoration. Removed from 4 files:
+- whoami.test.ts (3 lines)
+- activities.test.ts (3 lines)
+- events.test.ts (3 lines)
+- wellness.test.ts (3 lines)
+
+**project_plan.md update**: Marked Phase 4 as complete, updated Current Phase to Phase 5.
+
+**Final state**: 293 tests passing, lint clean, build successful.
+
+**Files written:**
+- `tests/unit/api-helpers.test.ts` — 6 unit tests
+
+**Files modified:**
+- `src/commands/config-cmd.ts` — removed unreachable returns
+- `src/commands/whoami.ts` — removed unreachable return
+- `src/commands/auth-cmd.ts` — removed 2 unreachable returns
+- `src/utils/api-helpers.ts` — new file with handleHttpError
+- `src/commands/activities.ts` — use handleHttpError
+- `src/commands/athletes.ts` — use handleHttpError
+- `src/commands/events.ts` — use handleHttpError
+- `src/commands/wellness.ts` — use handleHttpError
+- `tests/integration/*.test.ts` (7 files) — added vi.clearAllMocks, removed redundant mockRestore
 
 ---
 
 ## Last action
-Added Zod validation, CSV parsing fixes, and type safety improvements. 253 tests passing, lint clean.
-2026-05-16_15:30
+Config tests fix, handleHttpError extraction, and test infrastructure cleanup. 293 tests passing, lint clean, build successful.
+2026-05-17_12:15
 
 ---
 

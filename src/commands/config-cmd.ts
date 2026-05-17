@@ -22,14 +22,12 @@ export function register(program: Command): void {
       if (!VALID_KEYS.includes(key as ConfigKey)) {
         process.stderr.write(`Unknown config key: ${key}\n`);
         process.exit(1);
-        return;
       }
 
       if (key === 'defaultFormat') {
         if (!FORMAT_VALUES.includes(value as (typeof FORMAT_VALUES)[number])) {
           process.stderr.write(`Invalid value for defaultFormat: must be json, table, or plain\n`);
           process.exit(1);
-          return;
         }
       }
 
@@ -41,7 +39,6 @@ export function register(program: Command): void {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg) process.stderr.write(`${msg}\n`);
         process.exit(1);
-        return;
       }
       process.exit(0);
     });
@@ -53,7 +50,6 @@ export function register(program: Command): void {
       if (!VALID_KEYS.includes(key as ConfigKey)) {
         process.stderr.write(`Unknown config key: ${key}\n`);
         process.exit(1);
-        return;
       }
 
       try {
@@ -66,7 +62,6 @@ export function register(program: Command): void {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg) process.stderr.write(`${msg}\n`);
         process.exit(1);
-        return;
       }
       process.exit(0);
     });
@@ -83,7 +78,6 @@ export function register(program: Command): void {
         }));
 
         if (rows.length === 0) {
-          process.exit(0);
           return;
         }
 
@@ -99,8 +93,6 @@ export function register(program: Command): void {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg) process.stderr.write(`${msg}\n`);
         process.exit(1);
-        return;
       }
-      process.exit(0);
     });
 }

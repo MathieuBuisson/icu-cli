@@ -28,7 +28,6 @@ export function register(program: Command): void {
             'No credentials found. Set the ICU_API_KEY environment variable or the ICU_ACCESS_TOKEN environment variable.\n',
           );
           process.exit(1);
-          return;
         }
 
         const envVarLine = mode === 'bearer' ? 'ICU_ACCESS_TOKEN is set' : 'ICU_API_KEY is set';
@@ -51,7 +50,6 @@ export function register(program: Command): void {
             );
           }
           process.exit(1);
-          return;
         }
 
         const config = await readConfig();

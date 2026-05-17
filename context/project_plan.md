@@ -17,7 +17,7 @@ Build a cross-platform TypeScript CLI (`icu`) that wraps the Intervals.icu REST 
   WHAT: Which phase you're currently working on.
   WHY: Quick reference for where you are in the project. Update this as you progress.
 -->
-Phase 4
+Phase 5
 
 ## Phases
 
@@ -70,9 +70,9 @@ Phase 4
 - [x] Implement `src/commands/events.ts` (`list`, `get`, `create`, `update`, `delete`, `download`). See [icu events](../SPEC.md#icu-events). Strict validation (Number() vs parseInt), output path validation, CSV format fix, static import consistency. 152 tests passing.
 - [x] Write integration tests for events command group. 34 tests covering list, get, create, update, delete, download subcommands. Test infrastructure improved across all test files (global state cleanup, helper functions, SpyInstance types). 186 tests total.
 - [x] Implement `src/commands/wellness.ts` (`list`, `get`, `update`, `upload`). See [icu wellness](../SPEC.md#icu-wellness). Added stdin support (--file -), CSV parsing with csv-parse library, Zod validation.
-- [ ] Write integration tests for wellness command group, covering `list`, `get`, `update`, `upload` subcommands.
+- [x] Write integration tests for wellness command group, covering `list`, `get`, `update`, `upload` subcommands. 34 tests added (287 total now).
 - [x] Add Zod schema validation for Wellness, Event, Activity, Athlete in `src/utils/validation.ts`. Added validateWellness, validateEvent, validateActivity, validateAthlete functions. 67 unit tests.
-- **Status:** in_progress
+- **Status:** complete
 
 ### Phase 5: Command Groups — Planning & Social
 <!--
